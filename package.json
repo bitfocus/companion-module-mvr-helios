@@ -1,0 +1,19 @@
+{
+  "name": "mvr-helios",
+  "version": "1.0.0",
+  "api_version": "1.0.0",
+  "description": "Megapixel Visual Reality Helios",
+  "keywords": [
+    "Helios",
+    "LED Screen"
+  ],
+  "manufacturer": "Megapixel VR",
+  "product": "Helios",
+  "shortname": "Helios",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jelle van Abbema",
+  "license": "ISC"
+}
