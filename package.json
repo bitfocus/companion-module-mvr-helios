@@ -20,5 +20,5 @@
     "url": "git+https://github.com/bitfocus/companion-module-mvr-helios.git"
   },
   "author": "Jelle van Abbema",
-  "license": "ISC"
+  "license": "MIT"
 }
