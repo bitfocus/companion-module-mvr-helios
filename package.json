@@ -10,9 +10,14 @@
   "manufacturer": "Megapixel VR",
   "product": "Helios",
   "shortname": "Helios",
+  "homepage": "https://github.com/bitfocus/companion-module-mvr-helios/issues",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitfocus/companion-module-mvr-helios.git"
   },
   "author": "Jelle van Abbema",
   "license": "ISC"
