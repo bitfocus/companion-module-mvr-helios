@@ -438,7 +438,7 @@ class instance extends instance_skel {
 		feedbacks['blackout'] = {
 			type: 'boolean',
 			label: 'Check Blackout Status',
-			description: 'Longer description of the feedback',
+			description: 'Checks the blackout status of the processor.',
 			style: {
 				color: self.rgb(0, 0, 0),
 				bgcolor: self.rgb(255, 0, 0),
@@ -467,7 +467,7 @@ class instance extends instance_skel {
 		feedbacks['freeze'] = {
 			type: 'boolean',
 			label: 'Check Freeze Status',
-			description: 'Longer description of the feedback',
+			description: 'Checks the freeze status of the processor.',
 			style: {
 				color: self.rgb(0, 0, 0),
 				bgcolor: self.rgb(255, 0, 0),
@@ -496,7 +496,7 @@ class instance extends instance_skel {
 		feedbacks['active_input'] = {
 			type: 'boolean',
 			label: 'Check Active Input',
-			description: 'Longer description of the feedback',
+			description: 'Returns true if the selected input is active.',
 			style: {
 				color: self.rgb(0, 255, 0),
 				bgcolor: self.rgb(255, 255, 255),
@@ -544,7 +544,7 @@ class instance extends instance_skel {
 		feedbacks['invalid_input'] = {
 			type: 'boolean',
 			label: 'Check Invalid Input',
-			description: 'Returns true if the input is invalid',
+			description: 'Returns true if the selected input is invalid.',
 			style: {
 				color: self.rgb(255, 255, 255),
 				bgcolor: self.rgb(255, 70, 0),
@@ -593,7 +593,7 @@ class instance extends instance_skel {
 		feedbacks['test_enabled'] = {
 			type: 'boolean',
 			label: 'Check Test Pattern Status',
-			description: 'Longer description of the feedback',
+			description: 'Checks if the test pattern is active.',
 			style: {
 				color: self.rgb(0, 0, 0),
 				bgcolor: self.rgb(255, 0, 0),
@@ -625,73 +625,52 @@ class instance extends instance_skel {
 	initVariables() {
 		let self = this
 
-		let variables = []
-		variables.push({
-			label: 'Screen Brightness',
-			name: 'screen_brightness',
-		})
-
-		variables.push({
-			label: 'Screen Gamma',
-			name: 'screen_gamma',
-		})
-
-		variables.push({
-			label: 'Screen Color Temperature',
-			name: 'screen_cct',
-		})
-
-		variables.push({
-			label: 'Canvas Width',
-			name: 'canvas_width',
-		})
-
-		variables.push({
-			label: 'Canvas Height',
-			name: 'canvas_height',
-		})
-
-		variables.push({
-			label: 'Canvas X',
-			name: 'canvas_x',
-		})
-
-		variables.push({
-			label: 'Canvas Y',
-			name: 'canvas_y',
-		})
-
-		variables.push({
-			label: 'Tiles Count',
-			name: 'tiles_count',
-		})
-
-		variables.push({
-			label: 'Tiles Info',
-			name: 'tiles_info',
-		})
-
-		variables.push({
-			label: 'Test Pattern',
-			name: 'test_pattern',
-		})
-
-		variables.push({
-			label: 'Moving Test Pattern',
-			name: 'test_pattern_moving',
-		})
-
-		self.setVariable('screen_brightness', 100)
-		self.setVariable('screen_gamma', 2.4)
-		self.setVariable('screen_cct', 6504)
-		self.setVariable('canvas_width', 1920)
-		self.setVariable('canvas_height', 1080)
-		self.setVariable('canvas_x', 0)
-		self.setVariable('canvas_y', 0)
-		self.setVariable('tiles_count', 0)
-		self.setVariable('tiles_info', '')
-		self.setVariable('test_pattern', '')
-		self.setVariable('test_pattern_moving', '')
+		let variables = [
+			{
+				label: 'Screen Brightness',
+				name: 'screen_brightness',
+			},
+			{
+				label: 'Screen Gamma',
+				name: 'screen_gamma',
+			},
+			{
+				label: 'Screen Color Temperature',
+				name: 'screen_cct',
+			},
+			{
+				label: 'Canvas Width',
+				name: 'canvas_width',
+			},
+			{
+				label: 'Canvas Height',
+				name: 'canvas_height',
+			},
+			{
+				label: 'Canvas X',
+				name: 'canvas_x',
+			},
+			{
+				label: 'Canvas Y',
+				name: 'canvas_y',
+			},
+			{
+				label: 'Tiles Count',
+				name: 'tiles_count',
+			},
+			{
+				label: 'Tiles Info',
+				name: 'tiles_info',
+			},
+			{
+				label: 'Test Pattern',
+				name: 'test_pattern',
+			},
+			{
+				label: 'Moving Test Pattern',
+				name: 'test_pattern_moving',
+			}
+		]
 
 		self.setVariableDefinitions(variables)
 	}
@@ -750,8 +729,8 @@ class instance extends instance_skel {
 							input: input,
 						},
 						style: {
-							bgcolor: self.rgb(255, 70, 0),
 							color: self.rgb(255, 255, 255),
+							bgcolor: self.rgb(255, 70, 0),
 						},
 					},
 					{
@@ -760,8 +739,8 @@ class instance extends instance_skel {
 							input: input,
 						},
 						style: {
-							bgcolor: self.rgb(0, 255, 0),
 							color: self.rgb(255, 255, 255),
+							bgcolor: self.rgb(0, 255, 0),
 						},
 					},
 				],
@@ -793,8 +772,8 @@ class instance extends instance_skel {
 						id: 'true',
 					},
 					style: {
-						bgcolor: self.rgb(255, 0, 0),
 						color: self.rgb(255, 255, 255),
+						bgcolor: self.rgb(255, 0, 0),
 					},
 				},
 			],
@@ -825,8 +804,8 @@ class instance extends instance_skel {
 						id: 'true',
 					},
 					style: {
-						bgcolor: self.rgb(255, 0, 0),
 						color: self.rgb(255, 255, 255),
+						bgcolor: self.rgb(255, 0, 0),
 					},
 				},
 			],
@@ -857,8 +836,8 @@ class instance extends instance_skel {
 						id: 'true',
 					},
 					style: {
-						bgcolor: self.rgb(255, 0, 0),
 						color: self.rgb(255, 255, 255),
+						bgcolor: self.rgb(255, 0, 0),
 					},
 				},
 			],
