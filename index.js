@@ -669,7 +669,7 @@ class instance extends instance_skel {
 			{
 				label: 'Moving Test Pattern',
 				name: 'test_pattern_moving',
-			}
+			},
 		]
 
 		self.setVariableDefinitions(variables)
