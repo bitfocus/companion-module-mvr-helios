@@ -451,7 +451,7 @@ class instance extends instance_skel {
 					default: 'true',
 					choices: [
 						{ id: 'true', label: 'True' },
-						{ id: 'true', label: 'False' },
+						{ id: 'false', label: 'False' },
 					],
 				},
 			],
@@ -480,7 +480,7 @@ class instance extends instance_skel {
 					default: 'true',
 					choices: [
 						{ id: 'true', label: 'True' },
-						{ id: 'true', label: 'False' },
+						{ id: 'false', label: 'False' },
 					],
 				},
 			],
@@ -606,7 +606,7 @@ class instance extends instance_skel {
 					default: 'true',
 					choices: [
 						{ id: 'true', label: 'True' },
-						{ id: 'true', label: 'False' },
+						{ id: 'false', label: 'False' },
 					],
 				},
 			],
