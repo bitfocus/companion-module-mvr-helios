@@ -1059,7 +1059,7 @@ class instance extends instance_skel {
 		let body = JSON.stringify(data)
 
 		const options = {
-			url: 'http://' + this.config.host + '/api/v1/public',
+			url: 'http://' + self.config.ip + '/api/v1/public',
 			headers: {
 				'Content-type': 'application/json',
 			},
@@ -1116,7 +1116,7 @@ class instance extends instance_skel {
 		let body = JSON.stringify(data)
 
 		const options = {
-			url: 'http://' + this.config.host + '/api/v1/presets/apply',
+			url: 'http://' + self.config.ip + '/api/v1/presets/apply',
 			headers: {
 				'Content-type': 'application/json',
 			},
