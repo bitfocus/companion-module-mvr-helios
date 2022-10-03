@@ -12,6 +12,7 @@
   "shortname": "Helios",
   "main": "index.js",
   "scripts": {
+    "format": "prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,7 +22,10 @@
   "author": "Jelle van Abbema",
   "license": "MIT",
   "bugs": {
-     "url": "https://github.com/bitfocus/companion-module-mvr-helios/issues"
+    "url": "https://github.com/bitfocus/companion-module-mvr-helios/issues"
   },
-  "homepage": "https://github.com/bitfocus/companion-module-mvr-helios#readme"
+  "homepage": "https://github.com/bitfocus/companion-module-mvr-helios#readme",
+  "devDependencies": {
+    "prettier": "^2.7.1"
+  }
 }
