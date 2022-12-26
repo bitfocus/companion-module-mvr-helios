@@ -2,6 +2,8 @@
 
 This module controls and monitors Helios processors over HTTP.
 
+Created by Jelle van Abbema
+
 ## Usage
 
 Upon launch enter the IP of the Helios processor you wish to monitor and control.

@@ -1,15 +1,6 @@
 {
   "name": "mvr-helios",
-  "version": "1.0.1",
-  "api_version": "1.0.0",
-  "description": "Megapixel Visual Reality Helios",
-  "keywords": [
-    "Helios",
-    "LED Screen"
-  ],
-  "manufacturer": "Megapixel VR",
-  "product": "Helios",
-  "shortname": "Helios",
+  "version": "2.0.0",
   "main": "index.js",
   "scripts": {
     "format": "prettier --write .",
@@ -19,13 +10,14 @@
     "type": "git",
     "url": "git+https://github.com/bitfocus/companion-module-mvr-helios.git"
   },
-  "author": "Jelle van Abbema",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/bitfocus/companion-module-mvr-helios/issues"
-  },
-  "homepage": "https://github.com/bitfocus/companion-module-mvr-helios#readme",
   "devDependencies": {
-    "prettier": "^2.7.1"
-  }
+    "@companion-module/tools": "^0.5.1",
+    "prettier": "^2.8.1"
+  },
+  "dependencies": {
+    "@companion-module/base": "~1.0.1",
+    "request": "^2.88.2"
+  },
+  "prettier": "@companion-module/tools/.prettierrc.json"
 }

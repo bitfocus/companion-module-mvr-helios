@@ -1,14 +1,21 @@
-const instance_skel = require('../../instance_skel')
+const { InstanceBase, Regex, runEntrypoint, combineRgb, InstanceStatus } = require('@companion-module/base')
 const request = require('request')
 
 // Constants
 const pollIntervalMs = 1000
 const timeoutMs = 2000
 
-class instance extends instance_skel {
-	constructor(system, id, config) {
-		super(system, id, config)
+class instance extends InstanceBase {
+	constructor(internal) {
+		super(internal)
+
+		this.updateStatus(InstanceStatus.Disconnected)
+	}
+
+	async init(config) {
 		let self = this
+
+		this.config = config
 
 		// Variables
 		self.timer = undefined
@@ -16,53 +23,50 @@ class instance extends instance_skel {
 		self.firstAttempt = true
 		self.timestampOfRequest = Date.now()
 
+		this.configurations = []
+
 		self.initActions()
 		self.initFeedback()
 		self.initPresets()
+		self.initVariables()
 
-		self.status(self.STATUS_UNKNOWN, '')
+		self.startPolling()
 	}
 
-	config_fields() {
-		let self = this
+	async destroy() {
+		this.stopPolling()
+		this.log('debug', 'destroy')
+	}
 
+	getConfigFields() {
 		return [
 			{
-				type: 'text',
+				type: 'static-text',
 				id: 'info',
 				width: 12,
 				label: 'Information',
 				value: 'This works with all Helios models.',
 			},
 			{
-				type: 'text',
+				type: 'static-text',
 				id: 'info',
 				width: 12,
 				label: 'Firmware',
-				value: 'Latest supported firmware version: HELIOS v21.08.1.21311',
+				value: 'Latest supported firmware version: HELIOS v22.12',
 			},
 			{
 				type: 'textinput',
 				id: 'ip',
 				label: 'Target IP',
 				width: 6,
-				regex: self.REGEX_IP,
+				regex: Regex.IP,
 			},
 		]
 	}
 
-	init() {
-		let self = this
-
-		self.initVariables()
-		self.startPolling()
-	}
-
-	destroy() {
-		let self = this
-
-		self.stopPolling()
-		self.debug('destroy', self.id)
+	async configUpdated(config) {
+		this.config = config
+		this.startPolling()
 	}
 
 	initActions() {
@@ -70,7 +74,7 @@ class instance extends instance_skel {
 		let actions = {}
 
 		actions['set_blackout'] = {
-			label: 'Blackout',
+			name: 'Blackout',
 			options: [
 				{
 					type: 'dropdown',
@@ -84,8 +88,8 @@ class instance extends instance_skel {
 					],
 				},
 			],
-			callback: (action, bank) => {
-				let opt = action.options
+			callback: (event) => {
+				let opt = event.options
 				let value
 				if (opt.bo === 'toggle') {
 					value = !self.blackout
@@ -103,7 +107,7 @@ class instance extends instance_skel {
 		}
 
 		actions['set_freeze'] = {
-			label: 'Freeze',
+			name: 'Freeze',
 			options: [
 				{
 					type: 'dropdown',
@@ -117,8 +121,8 @@ class instance extends instance_skel {
 					],
 				},
 			],
-			callback: (action, bank) => {
-				let opt = action.options
+			callback: (event) => {
+				let opt = event.options
 				let value
 				if (opt.freeze === 'toggle') {
 					value = !self.freeze
@@ -136,43 +140,21 @@ class instance extends instance_skel {
 		}
 
 		actions['set_input'] = {
-			label: 'Input',
+			name: 'Input',
 			options: [
 				{
 					type: 'dropdown',
 					label: 'Select Input',
 					id: 'input',
-					default: 'hdmi1',
-					choices: [
-						{ id: 'hdmi', label: 'HDMI' },
-						{ id: 'hdmi1', label: 'HDMI1' },
-						{ id: 'hdmi2', label: 'HDMI2' },
-						{ id: 'hdmi1X2', label: 'HDMI(1X2)' },
-						{ id: 'hdmi2X1', label: 'HDMI(2X1)' },
-						{ id: 'dp', label: 'DP' },
-						{ id: 'dp1', label: 'DP1' },
-						{ id: 'dp2', label: 'DP2' },
-						{ id: 'dp1X2', label: 'DP(1X2)' },
-						{ id: 'dp2X1', label: 'DP(2X1)' },
-						{ id: 'sdi1', label: 'SDI1' },
-						{ id: 'sdi2', label: 'SDI2' },
-						{ id: 'sdi3', label: 'SDI3' },
-						{ id: 'sdi4', label: 'SDI4' },
-						{ id: 'sdi1X2', label: 'SDI(1X2)' },
-						{ id: 'sdi1X3', label: 'SDI(1X3)' },
-						{ id: 'sdi1X4', label: 'SDI(1X4)' },
-						{ id: 'sdi2X1', label: 'SDI(2X1)' },
-						{ id: 'sdi2X2', label: 'SDI(2X2)' },
-						{ id: 'sdi3X1', label: 'SDI(3X1)' },
-						{ id: 'sdi4X1', label: 'SDI(4X1)' },
-					],
+					default: '',
+					choices: this.getInputsLabeled(),
 				},
 			],
-			callback: (action, bank) => {
+			callback: (event) => {
 				let object = {}
 				object['dev'] = {
 					ingest: {
-						input: action.options.input,
+						input: event.options.input,
 					},
 				}
 				self.sendPatch(object)
@@ -180,7 +162,7 @@ class instance extends instance_skel {
 		}
 
 		actions['set_brightness'] = {
-			label: 'Screen Brightness',
+			name: 'Screen Brightness',
 			options: [
 				{
 					type: 'number',
@@ -194,11 +176,11 @@ class instance extends instance_skel {
 					range: true,
 				},
 			],
-			callback: (action, bank) => {
+			callback: (event) => {
 				let object = {}
 				object['dev'] = {
 					display: {
-						brightness: action.options.brightness,
+						brightness: event.options.brightness,
 					},
 				}
 				self.sendPatch(object)
@@ -206,7 +188,7 @@ class instance extends instance_skel {
 		}
 
 		actions['set_gamma'] = {
-			label: 'Screen Gamma',
+			name: 'Screen Gamma',
 			options: [
 				{
 					type: 'number',
@@ -220,11 +202,11 @@ class instance extends instance_skel {
 					range: true,
 				},
 			],
-			callback: (action, bank) => {
+			callback: (event) => {
 				let object = {}
 				object['dev'] = {
 					display: {
-						gamma: action.options.gamma,
+						gamma: event.options.gamma,
 					},
 				}
 				self.sendPatch(object)
@@ -232,7 +214,7 @@ class instance extends instance_skel {
 		}
 
 		actions['set_cct'] = {
-			label: 'Screen Color Temperature',
+			name: 'Screen Color Temperature',
 			options: [
 				{
 					type: 'number',
@@ -246,11 +228,11 @@ class instance extends instance_skel {
 					range: true,
 				},
 			],
-			callback: (action, bank) => {
+			callback: (event) => {
 				let object = {}
 				object['dev'] = {
 					display: {
-						cct: action.options.temp,
+						cct: event.options.temp,
 					},
 				}
 				self.sendPatch(object)
@@ -258,7 +240,7 @@ class instance extends instance_skel {
 		}
 
 		actions['set_resolution'] = {
-			label: 'Canvas Resolution',
+			name: 'Canvas Resolution',
 			options: [
 				{
 					type: 'number',
@@ -281,12 +263,12 @@ class instance extends instance_skel {
 					required: true,
 				},
 			],
-			callback: (action, bank) => {
+			callback: (event) => {
 				let object = {}
 				object['dev'] = {
 					display: {
-						width: action.options.width,
-						height: action.options.height,
+						width: event.options.width,
+						height: event.options.height,
 					},
 				}
 				self.sendPatch(object)
@@ -294,7 +276,7 @@ class instance extends instance_skel {
 		}
 
 		actions['set_position'] = {
-			label: 'Canvas Position',
+			name: 'Canvas Position',
 			options: [
 				{
 					type: 'number',
@@ -313,12 +295,12 @@ class instance extends instance_skel {
 					required: true,
 				},
 			],
-			callback: (action, bank) => {
+			callback: (event) => {
 				let object = {}
 				object['dev'] = {
 					display: {
-						x: action.options.x,
-						y: action.options.y,
+						x: event.options.x,
+						y: event.options.y,
 					},
 				}
 				self.sendPatch(object)
@@ -326,7 +308,7 @@ class instance extends instance_skel {
 		}
 
 		actions['set_show_test'] = {
-			label: 'Show Test Pattern',
+			name: 'Show Test Pattern',
 			options: [
 				{
 					type: 'dropdown',
@@ -340,8 +322,8 @@ class instance extends instance_skel {
 					],
 				},
 			],
-			callback: (action, bank) => {
-				let opt = action.options
+			callback: (event) => {
+				let opt = event.options
 				let value
 				if (opt.show === 'toggle') {
 					value = !self.test_enabled
@@ -361,13 +343,13 @@ class instance extends instance_skel {
 		}
 
 		actions['set_test_pattern'] = {
-			label: 'Set Test Pattern',
+			name: 'Set Test Pattern',
 			options: [
 				{
 					type: 'dropdown',
 					label: 'Select Pattern',
 					id: 'pattern',
-					default: 'green',
+					default: 'white',
 					choices: [
 						{ id: 'black', label: 'Black' },
 						{ id: 'red', label: 'Red' },
@@ -397,14 +379,21 @@ class instance extends instance_skel {
 						{ id: 'false', label: 'Static' },
 					],
 				},
+				{
+					type: 'colorpicker',
+					label: 'Colour',
+					id: 'color',
+					default: combineRgb(255, 255, 255),
+				},
 			],
-			callback: (action, bank) => {
+			callback: (event) => {
 				let object = {}
 				object['dev'] = {
 					ingest: {
 						testPattern: {
-							type: action.options.pattern,
-							motion: action.options.moving === 'true',
+							type: event.options.pattern,
+							motion: event.options.moving === 'true',
+							color: event.options.color,
 						},
 					},
 				}
@@ -413,7 +402,7 @@ class instance extends instance_skel {
 		}
 
 		actions['set_preset'] = {
-			label: 'Select Preset',
+			name: 'Select Preset',
 			options: [
 				{
 					type: 'textinput',
@@ -421,14 +410,32 @@ class instance extends instance_skel {
 					id: 'preset',
 				},
 			],
-			callback: (action, bank) => {
+			callback: (event) => {
 				let object = {}
-				object['presetName'] = action.options.preset
+				object['presetName'] = event.options.preset
 				self.setPreset(object)
 			},
 		}
 
-		self.setActions(actions)
+		actions['set_preset_select'] = {
+			name: 'Select Preset Dropdown',
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Preset Name',
+					id: 'preset',
+					default: '',
+					choices: self.configurations,
+				},
+			],
+			callback: (event) => {
+				let object = {}
+				object['presetName'] = event.options.preset
+				self.setPreset(object)
+			},
+		}
+
+		this.setActionDefinitions(actions)
 	}
 
 	initFeedback() {
@@ -437,11 +444,11 @@ class instance extends instance_skel {
 
 		feedbacks['blackout'] = {
 			type: 'boolean',
-			label: 'Check Blackout Status',
+			name: 'Check Blackout Status',
 			description: 'Checks the blackout status of the processor.',
-			style: {
-				color: self.rgb(0, 0, 0),
-				bgcolor: self.rgb(255, 0, 0),
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
 			},
 			options: [
 				{
@@ -466,11 +473,11 @@ class instance extends instance_skel {
 
 		feedbacks['freeze'] = {
 			type: 'boolean',
-			label: 'Check Freeze Status',
+			name: 'Check Freeze Status',
 			description: 'Checks the freeze status of the processor.',
 			style: {
-				color: self.rgb(0, 0, 0),
-				bgcolor: self.rgb(255, 0, 0),
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
 			},
 			options: [
 				{
@@ -495,41 +502,19 @@ class instance extends instance_skel {
 
 		feedbacks['active_input'] = {
 			type: 'boolean',
-			label: 'Check Active Input',
+			name: 'Check Active Input',
 			description: 'Returns true if the selected input is active.',
 			style: {
-				color: self.rgb(0, 255, 0),
-				bgcolor: self.rgb(255, 255, 255),
+				color: combineRgb(0, 255, 0),
+				bgcolor: combineRgb(255, 255, 255),
 			},
 			options: [
 				{
 					type: 'dropdown',
 					label: 'Input',
 					id: 'input',
-					default: 'hdmi1',
-					choices: [
-						{ id: 'hdmi', label: 'HDMI' },
-						{ id: 'hdmi1', label: 'HDMI1' },
-						{ id: 'hdmi2', label: 'HDMI2' },
-						{ id: 'hdmi1X2', label: 'HDMI(1X2)' },
-						{ id: 'hdmi2X1', label: 'HDMI(2X1)' },
-						{ id: 'dp', label: 'DP' },
-						{ id: 'dp1', label: 'DP1' },
-						{ id: 'dp2', label: 'DP2' },
-						{ id: 'dp1X2', label: 'DP(1X2)' },
-						{ id: 'dp2X1', label: 'DP(2X1)' },
-						{ id: 'sdi1', label: 'SDI1' },
-						{ id: 'sdi2', label: 'SDI2' },
-						{ id: 'sdi3', label: 'SDI3' },
-						{ id: 'sdi4', label: 'SDI4' },
-						{ id: 'sdi1X2', label: 'SDI(1X2)' },
-						{ id: 'sdi1X3', label: 'SDI(1X3)' },
-						{ id: 'sdi1X4', label: 'SDI(1X4)' },
-						{ id: 'sdi2X1', label: 'SDI(2X1)' },
-						{ id: 'sdi2X2', label: 'SDI(2X2)' },
-						{ id: 'sdi3X1', label: 'SDI(3X1)' },
-						{ id: 'sdi4X1', label: 'SDI(4X1)' },
-					],
+					default: '',
+					choices: this.getInputsLabeled(),
 				},
 			],
 			callback: function (feedback) {
@@ -543,41 +528,19 @@ class instance extends instance_skel {
 
 		feedbacks['invalid_input'] = {
 			type: 'boolean',
-			label: 'Check Invalid Input',
+			name: 'Check Invalid Input',
 			description: 'Returns true if the selected input is invalid.',
 			style: {
-				color: self.rgb(255, 255, 255),
-				bgcolor: self.rgb(255, 70, 0),
+				color: combineRgb(255, 255, 255),
+				bgcolor: combineRgb(255, 70, 0),
 			},
 			options: [
 				{
 					type: 'dropdown',
 					label: 'Input',
 					id: 'input',
-					default: 'hdmi1',
-					choices: [
-						{ id: 'hdmi', label: 'HDMI' },
-						{ id: 'hdmi1', label: 'HDMI1' },
-						{ id: 'hdmi2', label: 'HDMI2' },
-						{ id: 'hdmi1X2', label: 'HDMI(1X2)' },
-						{ id: 'hdmi2X1', label: 'HDMI(2X1)' },
-						{ id: 'dp', label: 'DP' },
-						{ id: 'dp1', label: 'DP1' },
-						{ id: 'dp2', label: 'DP2' },
-						{ id: 'dp1X2', label: 'DP(1X2)' },
-						{ id: 'dp2X1', label: 'DP(2X1)' },
-						{ id: 'sdi1', label: 'SDI1' },
-						{ id: 'sdi2', label: 'SDI2' },
-						{ id: 'sdi3', label: 'SDI3' },
-						{ id: 'sdi4', label: 'SDI4' },
-						{ id: 'sdi1X2', label: 'SDI(1X2)' },
-						{ id: 'sdi1X3', label: 'SDI(1X3)' },
-						{ id: 'sdi1X4', label: 'SDI(1X4)' },
-						{ id: 'sdi2X1', label: 'SDI(2X1)' },
-						{ id: 'sdi2X2', label: 'SDI(2X2)' },
-						{ id: 'sdi3X1', label: 'SDI(3X1)' },
-						{ id: 'sdi4X1', label: 'SDI(4X1)' },
-					],
+					default: '',
+					choices: this.getInputsLabeled(),
 				},
 			],
 			callback: function (feedback) {
@@ -592,11 +555,11 @@ class instance extends instance_skel {
 
 		feedbacks['test_enabled'] = {
 			type: 'boolean',
-			label: 'Check Test Pattern Status',
+			name: 'Check Test Pattern Status',
 			description: 'Checks if the test pattern is active.',
 			style: {
-				color: self.rgb(0, 0, 0),
-				bgcolor: self.rgb(255, 0, 0),
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
 			},
 			options: [
 				{
@@ -619,67 +582,506 @@ class instance extends instance_skel {
 			},
 		}
 
-		self.setFeedbackDefinitions(feedbacks)
+		this.setFeedbackDefinitions(feedbacks)
 	}
 
 	initVariables() {
-		let self = this
-
 		let variables = [
 			{
-				label: 'Screen Brightness',
-				name: 'screen_brightness',
+				name: 'Screen Brightness',
+				variableId: 'screen_brightness',
 			},
 			{
-				label: 'Screen Gamma',
-				name: 'screen_gamma',
+				name: 'Screen Gamma',
+				variableId: 'screen_gamma',
 			},
 			{
-				label: 'Screen Color Temperature',
-				name: 'screen_cct',
+				name: 'Screen Color Temperature',
+				variableId: 'screen_cct',
 			},
 			{
-				label: 'Canvas Width',
-				name: 'canvas_width',
+				name: 'Canvas Width',
+				variableId: 'canvas_width',
 			},
 			{
-				label: 'Canvas Height',
-				name: 'canvas_height',
+				name: 'Canvas Height',
+				variableId: 'canvas_height',
 			},
 			{
-				label: 'Canvas X',
-				name: 'canvas_x',
+				name: 'Canvas X',
+				variableId: 'canvas_x',
 			},
 			{
-				label: 'Canvas Y',
-				name: 'canvas_y',
+				name: 'Canvas Y',
+				variableId: 'canvas_y',
 			},
 			{
-				label: 'Tiles Count',
-				name: 'tiles_count',
+				name: 'Tiles Count',
+				variableId: 'tiles_count',
 			},
 			{
-				label: 'Tiles Info',
-				name: 'tiles_info',
+				name: 'Tiles Info',
+				variableId: 'tiles_info',
 			},
 			{
-				label: 'Test Pattern',
-				name: 'test_pattern',
+				name: 'Test Pattern',
+				variableId: 'test_pattern',
 			},
 			{
-				label: 'Moving Test Pattern',
-				name: 'test_pattern_moving',
+				name: 'Moving Test Pattern',
+				variableId: 'test_pattern_moving',
 			},
 		]
 
-		self.setVariableDefinitions(variables)
+		this.setVariableDefinitions(variables)
 	}
 
 	initPresets() {
-		let self = this
-		let presets = []
+		let presets = {}
 
-		const inputs_list = [
+		for (let input of this.getInputs()) {
+			presets[input] = {
+				type: 'button',
+				category: 'Inputs',
+				name: 'Switch Input',
+				style: {
+					text: input.toUpperCase(),
+					size: '18',
+					color: '16777215',
+					bgcolor: combineRgb(0, 0, 0),
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'set_input',
+								options: {
+									input: input,
+								},
+							},
+						],
+						up: [],
+					},
+				],
+				feedbacks: [
+					{
+						feedbackId: 'invalid_input',
+						options: {
+							input: input,
+						},
+						style: {
+							color: combineRgb(255, 255, 255),
+							bgcolor: combineRgb(255, 70, 0),
+						},
+					},
+					{
+						feedbackId: 'active_input',
+						options: {
+							input: input,
+						},
+						style: {
+							color: combineRgb(255, 255, 255),
+							bgcolor: combineRgb(0, 255, 0),
+						},
+					},
+				],
+			}
+		}
+
+		presets['blackout'] = {
+			type: 'button',
+			category: 'Utility',
+			name: 'Blackout',
+			style: {
+				text: 'BO',
+				size: '18',
+				color: combineRgb(255, 0, 0),
+				bgcolor: combineRgb(0, 0, 0),
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'set_blackout',
+							options: {
+								bo: 'toggle',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'blackout',
+					options: {
+						state: 'true',
+					},
+					style: {
+						color: combineRgb(255, 255, 255),
+						bgcolor: combineRgb(255, 0, 0),
+					},
+				},
+			],
+		}
+
+		presets['freeze'] = {
+			type: 'button',
+			category: 'Utility',
+			name: 'Freeze',
+			style: {
+				text: 'Freeze',
+				size: '18',
+				color: combineRgb(255, 0, 0),
+				bgcolor: combineRgb(0, 0, 0),
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'set_freeze',
+							options: {
+								freeze: 'toggle',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'freeze',
+					options: {
+						state: 'true',
+					},
+					style: {
+						color: combineRgb(255, 255, 255),
+						bgcolor: combineRgb(255, 0, 0),
+					},
+				},
+			],
+		}
+
+		presets['toggle_test'] = {
+			type: 'button',
+			category: 'Utility',
+			name: 'Toggle test pattern',
+			style: {
+				text: 'Toggle test pattern',
+				size: '14',
+				color: combineRgb(255, 0, 0),
+				bgcolor: combineRgb(0, 0, 0),
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'set_show_test',
+							options: {
+								show: 'toggle',
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'test_enabled',
+					options: {
+						state: 'true',
+					},
+					style: {
+						color: combineRgb(255, 255, 255),
+						bgcolor: combineRgb(255, 0, 0),
+					},
+				},
+			],
+		}
+
+		this.setPresetDefinitions(presets)
+	}
+
+	updateVariables(data, patch) {
+		let self = this
+
+		if (data.dev === undefined) {
+			return
+		}
+
+		let ingest = data.dev.ingest
+		if (ingest !== undefined) {
+			if (!patch) {
+				self.ingest = ingest
+				self.checkFeedbacks('invalid_input')
+			}
+
+			if (ingest.input !== undefined) {
+				self.active_input = ingest.input
+				self.checkFeedbacks('active_input')
+			}
+
+			let inputs = ingest.inputs
+			if (inputs !== undefined) {
+				let inputArray = []
+				Object.entries(inputs).forEach((entry) => {
+					const [key, value] = entry
+					inputArray.push(key)
+				})
+				this.inputs = inputArray
+			}
+
+			let testPattern = ingest.testPattern
+			if (testPattern !== undefined) {
+				if (testPattern.enabled !== undefined) {
+					self.test_enabled = testPattern.enabled
+					self.checkFeedbacks('test_enabled')
+				}
+
+				if (testPattern.type !== undefined) {
+					self.setVariableValues({ test_pattern: testPattern.type })
+				}
+
+				if (testPattern.motion !== undefined) {
+					self.setVariableValues({ test_pattern_moving: testPattern.motion })
+				}
+			}
+		}
+
+		let display = data.dev.display
+		if (display !== undefined) {
+			if (display.blackout !== undefined) {
+				self.blackout = display.blackout
+				self.checkFeedbacks('blackout')
+			}
+
+			if (display.freeze !== undefined) {
+				self.freeze = display.freeze
+				self.checkFeedbacks('freeze')
+			}
+
+			if (display.brightness !== undefined) {
+				self.brightness = display.brightness
+				self.setVariableValues({ screen_brightness: self.brightness })
+			}
+
+			if (display.gamma !== undefined) {
+				self.gamma = display.gamma
+				self.setVariableValues({ screen_gamma: self.gamma })
+			}
+
+			if (display.cct !== undefined) {
+				self.cct = display.cct
+				self.setVariableValues({ screen_cct: self.cct })
+			}
+
+			if (display.width !== undefined) {
+				self.setVariableValues({ canvas_width: display.width })
+			}
+
+			if (display.height !== undefined) {
+				self.setVariableValues({ canvas_height: display.height })
+			}
+
+			if (display.x !== undefined) {
+				self.setVariableValues({ canvas_x: display.x })
+			}
+
+			if (display.y !== undefined) {
+				self.setVariableValues({ canvas_y: display.y })
+			}
+
+			if (display.tilesCount !== undefined) {
+				self.setVariableValues({ tiles_count: display.tilesCount })
+			}
+
+			if (display.tilesInfo !== undefined) {
+				self.setVariableValues({ tiles_info: display.tilesInfo })
+			}
+		}
+	}
+
+	startPolling = function () {
+		this.log('debug', 'start polling')
+		let self = this
+
+		if (self.timer === undefined) {
+			self.timer = setInterval(self.poll.bind(self), pollIntervalMs)
+		}
+
+		self.poll()
+	}
+
+	stopPolling() {
+		let self = this
+
+		if (self.timer !== undefined) {
+			clearInterval(self.timer)
+			delete self.timer
+		}
+	}
+
+	async poll() {
+		await this.sendGetRequest('/api/v1/public')
+			.then((response) => {
+				if (response !== undefined) {
+					this.updateVariables(response, false)
+				}
+			})
+			.catch(() => {
+				this.log('debug', 'error caught')
+			})
+
+		await this.sendGetRequest('/api/v1/presets')
+			.then((response) => {
+				if (response !== undefined) {
+					let configurations = []
+					for (let preset of response.presets) {
+						configurations.push({ id: preset.presetName, label: preset.presetName })
+					}
+					this.configurations = configurations
+				}
+			})
+			.catch(() => {
+				this.log('debug', 'second error caught')
+			})
+
+		this.initActions()
+		this.initPresets()
+	}
+
+	sendGetRequest(patch) {
+		let self = this
+
+		return new Promise(function (resolve, reject) {
+			const timestamp = Date.now()
+
+			// Check if the IP was set.
+			if (self.config.ip === undefined || self.config.ip.length === 0) {
+				if (self.loggedError === false) {
+					let msg = 'IP is not set'
+					self.log('error', msg)
+					self.updateStatus(InstanceStatus.BadConfig, msg)
+					self.loggedError = true
+				}
+
+				self.timestampOfRequest = timestamp
+				return reject()
+			}
+
+			// Call the api endpoint to get the state.
+			const options = {
+				method: 'GET',
+				url: 'http://' + self.config.ip + patch,
+				timeout: timeoutMs,
+				headers: {
+					'Content-type': 'application/json',
+				},
+			}
+
+			request(options, function (err, result) {
+				const response = self.handleResponse(timestamp, err, result)
+				if (response === undefined) {
+					return reject()
+				} else {
+					return resolve(response)
+				}
+			})
+		})
+	}
+
+	sendPatch(data) {
+		let self = this
+		const timestamp = Date.now()
+
+		let body = JSON.stringify(data)
+
+		const options = {
+			url: 'http://' + self.config.ip + '/api/v1/public',
+			headers: {
+				'Content-type': 'application/json',
+			},
+			body: body,
+		}
+
+		request.patch(options, function (err, result, body) {
+			const response = self.handleResponse(timestamp, err, result)
+			self.updateVariables(response, true)
+		})
+	}
+
+	setPreset(data) {
+		let self = this
+		const timestamp = Date.now()
+
+		let body = JSON.stringify(data)
+
+		const options = {
+			url: 'http://' + self.config.ip + '/api/v1/presets/apply',
+			headers: {
+				'Content-type': 'application/json',
+			},
+			body: body,
+		}
+
+		request.post(options, function (err, result, body) {
+			const response = self.handleResponse(timestamp, err, result)
+			self.updateVariables(response, true)
+		})
+	}
+
+	handleResponse(timestamp, err, result) {
+		const self = this
+
+		// If the request is old it should be ignored.
+		if (timestamp < self.timestampOfRequest) {
+			return
+		}
+
+		self.timestampOfRequest = timestamp
+
+		// Check if request was unsuccessful.
+		if (err !== null || result.statusCode !== 200) {
+			if (self.loggedError === false) {
+				let msg = 'HTTP GET Request for ' + self.config.ip + ' failed'
+				if (err !== null) {
+					msg += ' (' + err + ')'
+				} else {
+					msg += ' (' + result.statusCode + ': ' + result.body + ')'
+				}
+
+				self.log('error', msg)
+				self.updateStatus(InstanceStatus.ConnectionFailure, msg)
+				self.loggedError = true
+			}
+			return
+		}
+
+		// Made a successful request.
+		if (self.loggedError === true || self.firstAttempt) {
+			self.log('info', 'HTTP connection succeeded')
+			self.updateStatus(InstanceStatus.Ok)
+			self.loggedError = false
+			self.firstAttempt = false
+		}
+
+		let response = {}
+		if (result.body.length > 0) {
+			try {
+				response = JSON.parse(result.body.toString())
+			} catch (error) {
+				return
+			}
+		}
+		return response
+	}
+
+	getInputs() {
+		if (this.inputs !== undefined) {
+			return this.inputs
+		}
+
+		return [
 			'hdmi',
 			'hdmi1',
 			'hdmi2',
@@ -702,448 +1104,15 @@ class instance extends instance_skel {
 			'sdi3X1',
 			'sdi4X1',
 		]
-
-		for (let input of inputs_list) {
-			presets.push({
-				category: 'Inputs',
-				label: 'Switch Input',
-				bank: {
-					style: 'text',
-					text: input.toUpperCase(),
-					size: '18',
-					color: '16777215',
-					bgcolor: self.rgb(0, 0, 0),
-				},
-				actions: [
-					{
-						action: 'set_input',
-						options: {
-							input: input,
-						},
-					},
-				],
-				feedbacks: [
-					{
-						type: 'invalid_input',
-						options: {
-							input: input,
-						},
-						style: {
-							color: self.rgb(255, 255, 255),
-							bgcolor: self.rgb(255, 70, 0),
-						},
-					},
-					{
-						type: 'active_input',
-						options: {
-							input: input,
-						},
-						style: {
-							color: self.rgb(255, 255, 255),
-							bgcolor: self.rgb(0, 255, 0),
-						},
-					},
-				],
-			})
-		}
-
-		presets.push({
-			category: 'Utility',
-			label: 'Blackout',
-			bank: {
-				style: 'text',
-				text: 'BO',
-				size: '18',
-				color: self.rgb(255, 0, 0),
-				bgcolor: self.rgb(0, 0, 0),
-			},
-			actions: [
-				{
-					action: 'set_blackout',
-					options: {
-						bo: 'toggle',
-					},
-				},
-			],
-			feedbacks: [
-				{
-					type: 'blackout',
-					options: {
-						id: 'true',
-					},
-					style: {
-						color: self.rgb(255, 255, 255),
-						bgcolor: self.rgb(255, 0, 0),
-					},
-				},
-			],
-		})
-
-		presets.push({
-			category: 'Utility',
-			label: 'Freeze',
-			bank: {
-				style: 'text',
-				text: 'Freeze',
-				size: '18',
-				color: self.rgb(255, 0, 0),
-				bgcolor: self.rgb(0, 0, 0),
-			},
-			actions: [
-				{
-					action: 'set_freeze',
-					options: {
-						freeze: 'toggle',
-					},
-				},
-			],
-			feedbacks: [
-				{
-					type: 'freeze',
-					options: {
-						id: 'true',
-					},
-					style: {
-						color: self.rgb(255, 255, 255),
-						bgcolor: self.rgb(255, 0, 0),
-					},
-				},
-			],
-		})
-
-		presets.push({
-			category: 'Utility',
-			label: 'Toggle test pattern',
-			bank: {
-				style: 'text',
-				text: 'Toggle test pattern',
-				size: '14',
-				color: self.rgb(255, 0, 0),
-				bgcolor: self.rgb(0, 0, 0),
-			},
-			actions: [
-				{
-					action: 'set_show_test',
-					options: {
-						freeze: 'toggle',
-					},
-				},
-			],
-			feedbacks: [
-				{
-					type: 'test_enabled',
-					options: {
-						id: 'true',
-					},
-					style: {
-						color: self.rgb(255, 255, 255),
-						bgcolor: self.rgb(255, 0, 0),
-					},
-				},
-			],
-		})
-
-		self.setPresetDefinitions(presets)
 	}
 
-	updateConfig(config) {
-		let self = this
-
-		self.config = config
-		self.startPolling()
-	}
-
-	updateVariables(data, patch) {
-		let self = this
-
-		if (data.dev === undefined) {
-			return
+	getInputsLabeled() {
+		let inputs = []
+		for (let input of this.getInputs()) {
+			inputs.push({ id: input, label: input.toUpperCase() })
 		}
-
-		let ingest = data.dev.ingest
-		if (ingest !== undefined) {
-			if (!patch) {
-				self.ingest = ingest
-				self.checkFeedbacks('invalid_input')
-			}
-			if (ingest.input !== undefined) {
-				self.active_input = ingest.input
-				self.checkFeedbacks('active_input')
-			}
-
-			let testPattern = ingest.testPattern
-			if (testPattern !== undefined) {
-				if (testPattern.enabled !== undefined) {
-					self.test_enabled = testPattern.enabled
-					self.checkFeedbacks('test_enabled')
-				}
-
-				if (testPattern.type !== undefined) {
-					self.setVariable('test_pattern', testPattern.type)
-				}
-
-				if (testPattern.motion !== undefined) {
-					self.setVariable('test_pattern_moving', testPattern.motion)
-				}
-			}
-		}
-
-		let display = data.dev.display
-		if (display !== undefined) {
-			if (display.blackout !== undefined) {
-				self.blackout = display.blackout
-				self.checkFeedbacks('blackout')
-			}
-
-			if (display.freeze !== undefined) {
-				self.freeze = display.freeze
-				self.checkFeedbacks('freeze')
-			}
-
-			if (display.brightness !== undefined) {
-				self.brightness = display.brightness
-				self.setVariable('screen_brightness', self.brightness)
-			}
-
-			if (display.gamma !== undefined) {
-				self.gamma = display.gamma
-				self.setVariable('screen_gamma', self.gamma)
-			}
-
-			if (display.cct !== undefined) {
-				self.cct = display.cct
-				self.setVariable('screen_cct', self.cct)
-			}
-
-			if (display.width !== undefined) {
-				self.setVariable('canvas_width', display.width)
-			}
-
-			if (display.height !== undefined) {
-				self.setVariable('canvas_height', display.height)
-			}
-
-			if (display.x !== undefined) {
-				self.setVariable('canvas_x', display.x)
-			}
-
-			if (display.y !== undefined) {
-				self.setVariable('canvas_y', display.y)
-			}
-
-			if (display.tilesCount !== undefined) {
-				self.setVariable('tiles_count', display.tilesCount)
-			}
-
-			if (display.tilesInfo !== undefined) {
-				self.setVariable('tiles_info', display.tilesInfo)
-			}
-		}
-	}
-
-	startPolling = function () {
-		let self = this
-
-		if (self.timer === undefined) {
-			self.timer = setInterval(self.poll.bind(self), pollIntervalMs)
-		}
-
-		self.poll()
-	}
-
-	stopPolling() {
-		let self = this
-
-		if (self.timer !== undefined) {
-			clearInterval(self.timer)
-			delete self.timer
-		}
-	}
-
-	poll() {
-		let self = this
-		const timestamp = Date.now()
-
-		// Check if the IP was set.
-		if (self.config.ip === undefined || self.config.ip.length === 0) {
-			if (self.loggedError === false) {
-				let msg = 'IP is not set'
-				self.log('error', msg)
-				self.status(self.STATUS_WARNING, msg)
-				self.loggedError = true
-			}
-
-			self.timestampOfRequest = timestamp
-			return
-		}
-
-		// Call the api endpoint to get the state.
-		const options = {
-			method: 'GET',
-			url: 'http://' + self.config.ip + '/api/v1/public',
-			timeout: timeoutMs,
-			headers: {
-				'Content-type': 'application/json',
-			},
-		}
-
-		request(options, function (err, result) {
-			// If the request is old it should be ignored.
-			if (timestamp < self.timestampOfRequest) {
-				return
-			}
-
-			self.timestampOfRequest = timestamp
-
-			// Check if request was unsuccessful.
-			if (err !== null || result.statusCode !== 200) {
-				if (self.loggedError === false) {
-					let msg = 'HTTP GET Request for ' + self.config.ip + ' failed'
-					if (err !== null) {
-						msg += ' (' + err + ')'
-					} else {
-						msg += ' (' + result.statusCode + ': ' + result.body + ')'
-					}
-
-					self.log('error', msg)
-					self.status(self.STATUS_ERROR, msg)
-					self.loggedError = true
-				}
-				return
-			}
-
-			// Made a successful request.
-			if (self.loggedError === true || self.firstAttempt) {
-				self.log('info', 'HTTP connection succeeded')
-				self.status(self.STATUS_OK)
-				self.loggedError = false
-				self.firstAttempt = false
-			}
-
-			let response = {}
-			if (result.body.length > 0) {
-				try {
-					response = JSON.parse(result.body.toString())
-				} catch (error) {}
-			}
-
-			self.updateVariables(response, false)
-		})
-	}
-
-	sendPatch(data) {
-		let self = this
-		const timestamp = Date.now()
-
-		let body = JSON.stringify(data)
-
-		const options = {
-			url: 'http://' + self.config.ip + '/api/v1/public',
-			headers: {
-				'Content-type': 'application/json',
-			},
-			body: body,
-		}
-
-		request.patch(options, function (err, result, body) {
-			// If the request is old it should be ignored.
-			if (timestamp < self.timestampOfRequest) {
-				return
-			}
-
-			self.timestampOfRequest = timestamp
-
-			// Check if request was unsuccessful.
-			if (err !== null || result.statusCode !== 200) {
-				if (self.loggedError === false) {
-					let msg = 'HTTP GET Request for ' + self.config.ip + ' failed'
-					if (err !== null) {
-						msg += ' (' + err + ')'
-					} else {
-						msg += ' (' + result.statusCode + ': ' + result.body + ')'
-					}
-
-					self.log('error', msg)
-					self.status(self.STATUS_ERROR, msg)
-					self.loggedError = true
-				}
-				return
-			}
-
-			// Made a successful request.
-			if (self.loggedError === true || self.firstAttempt) {
-				self.log('info', 'HTTP connection succeeded')
-				self.status(self.STATUS_OK)
-				self.loggedError = false
-				self.firstAttempt = false
-			}
-
-			let response = {}
-			if (result.body.length > 0) {
-				try {
-					response = JSON.parse(result.body.toString())
-				} catch (error) {}
-			}
-			self.updateVariables(response, true)
-		})
-	}
-
-	setPreset(data) {
-		let self = this
-		const timestamp = Date.now()
-
-		let body = JSON.stringify(data)
-
-		const options = {
-			url: 'http://' + self.config.ip + '/api/v1/presets/apply',
-			headers: {
-				'Content-type': 'application/json',
-			},
-			body: body,
-		}
-
-		request.post(options, function (err, result, body) {
-			// If the request is old it should be ignored.
-			if (timestamp < self.timestampOfRequest) {
-				return
-			}
-
-			self.timestampOfRequest = timestamp
-
-			// Check if request was unsuccessful.
-			if (err !== null || result.statusCode !== 200) {
-				if (self.loggedError === false) {
-					let msg = 'HTTP GET Request for ' + self.config.ip + ' failed'
-					if (err !== null) {
-						msg += ' (' + err + ')'
-					} else {
-						msg += ' (' + result.statusCode + ': ' + result.body + ')'
-					}
-
-					self.log('error', msg)
-					self.status(self.STATUS_ERROR, msg)
-					self.loggedError = true
-				}
-				return
-			}
-
-			// Made a successful request.
-			if (self.loggedError === true || self.firstAttempt) {
-				self.log('info', 'HTTP connection succeeded')
-				self.status(self.STATUS_OK)
-				self.loggedError = false
-				self.firstAttempt = false
-			}
-
-			let response = {}
-			if (result.body.length > 0) {
-				try {
-					response = JSON.parse(result.body.toString())
-				} catch (error) {}
-			}
-			self.updateVariables(response, true)
-		})
+		return inputs
 	}
 }
 
-exports = module.exports = instance
+runEntrypoint(instance, [])
