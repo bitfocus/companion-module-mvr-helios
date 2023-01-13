@@ -365,5 +365,245 @@ exports.updateActions = function () {
 		},
 	}
 
+	actions['set_group_blackout'] = {
+		name: 'Group Blackout',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Select Group',
+				id: 'group',
+				default: 0,
+				choices: this.getGroups(),
+			},
+			{
+				type: 'dropdown',
+				label: 'Select State',
+				id: 'bo',
+				default: 'toggle',
+				choices: [
+					{ id: 'true', label: 'Enable' },
+					{ id: 'false', label: 'Disable' },
+					{ id: 'toggle', label: 'Toggle' },
+				],
+			},
+		],
+		callback: (event) => {
+			let opt = event.options
+			let value
+			if (opt.bo === 'toggle') {
+				value = !self.groups[opt.group].blackout
+			} else {
+				value = opt.bo === 'true'
+			}
+			let object = {}
+			object['dev'] = {
+				groups: {},
+			}
+
+			object['dev'].groups[opt.group] = {
+				blackout: value,
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['set_group_show_test'] = {
+		name: 'Show Group Test Pattern',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Select Group',
+				id: 'group',
+				default: 0,
+				choices: this.getGroups(),
+			},
+			{
+				type: 'dropdown',
+				label: 'Select State',
+				id: 'show',
+				default: 'toggle',
+				choices: [
+					{ id: 'true', label: 'Enable' },
+					{ id: 'false', label: 'Disable' },
+					{ id: 'toggle', label: 'Toggle' },
+				],
+			},
+		],
+		callback: (event) => {
+			let opt = event.options
+			let value
+			if (opt.show === 'toggle') {
+				value = !self.groups[opt.group].testPattern.enabled
+			} else {
+				value = opt.show === 'true'
+			}
+			let object = {}
+			object['dev'] = {
+				groups: {},
+			}
+
+			object['dev'].groups[opt.group] = {
+				testPattern: {
+					enabled: value,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['set_group_show_mask'] = {
+		name: 'Show Group Mask',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Select Group',
+				id: 'group',
+				default: 0,
+				choices: this.getGroups(),
+			},
+			{
+				type: 'dropdown',
+				label: 'Select State',
+				id: 'show',
+				default: 'toggle',
+				choices: [
+					{ id: 'true', label: 'Enable' },
+					{ id: 'false', label: 'Disable' },
+					{ id: 'toggle', label: 'Toggle' },
+				],
+			},
+		],
+		callback: (event) => {
+			let opt = event.options
+			let value
+			if (opt.show === 'toggle') {
+				value = !self.groups[opt.group].mask.enabled
+			} else {
+				value = opt.show === 'true'
+			}
+			let object = {}
+			object['dev'] = {
+				groups: {},
+			}
+
+			object['dev'].groups[opt.group] = {
+				mask: {
+					enabled: value,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['set_group_gains'] = {
+		name: 'Set Group Gains',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Select Group',
+				id: 'group',
+				default: 0,
+				choices: this.getGroups(),
+			},
+			{
+				type: 'number',
+				label: 'Intensity',
+				id: 'intensity',
+				min: 0,
+				max: 2,
+				default: 1,
+				step: 0.001,
+				required: true,
+				range: true,
+			},
+			{
+				type: 'number',
+				label: 'Red',
+				id: 'red',
+				min: 0,
+				max: 2,
+				default: 1,
+				step: 0.001,
+				required: true,
+				range: true,
+			},
+			{
+				type: 'number',
+				label: 'Green',
+				id: 'green',
+				min: 0,
+				max: 2,
+				default: 1,
+				step: 0.001,
+				required: true,
+				range: true,
+			},
+			{
+				type: 'number',
+				label: 'Blue',
+				id: 'blue',
+				min: 0,
+				max: 2,
+				default: 1,
+				step: 0.001,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let opt = event.options
+			let object = {}
+			object['dev'] = {
+				groups: {},
+			}
+
+			object['dev'].groups[opt.group] = {
+				gains: {
+					i: opt.intensity,
+					r: opt.red,
+					g: opt.green,
+					b: opt.blue,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['set_lift'] = {
+		name: 'Set Lift',
+		options: [
+			{
+				type: 'colorpicker',
+				label: 'Colour',
+				id: 'color',
+				default: combineRgb(255, 255, 255),
+			},
+		],
+		callback: (event) => {
+			let opt = event.options
+			self.log('debug', 'Color: ' + opt.color)
+
+			let rgb = opt.color.replace(/[^\d,]/g, '').split(',')
+
+			self.log('debug', rgb[0])
+			let object = {}
+			object['dev'] = {
+				display: {
+					out: {
+						adjust: {
+							lift: {
+								r: opt.color.red,
+								g: opt.color.green,
+								b: opt.color.blue,
+							},
+						},
+					},
+				},
+			}
+
+			self.sendPatchRequest(object)
+		},
+	}
+
 	this.setActionDefinitions(actions)
 }

@@ -1,9 +1,9 @@
 const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
-const actions = require("./actions");
-const feedbacks = require("./feedbacks");
-const presets = require("./presets");
-const variables = require("./variables");
-const requests = require("./requests");
+const actions = require('./actions')
+const feedbacks = require('./feedbacks')
+const presets = require('./presets')
+const variables = require('./variables')
+const requests = require('./requests')
 
 // Constants
 const pollIntervalMs = 1000
@@ -17,31 +17,30 @@ class instance extends InstanceBase {
 			...feedbacks,
 			...presets,
 			...variables,
-			...requests
-		});
+			...requests,
+		})
 
 		this.updateStatus(InstanceStatus.Disconnected)
 	}
 
 	async init(config, firstInit) {
-		let self = this
-
 		this.config = config
 
 		// Variables
-		self.timer = undefined
-		self.loggedError = false // Stops the poll flooding the log
-		self.firstAttempt = true
-		self.timestampOfRequest = Date.now()
+		this.timer = undefined
+		this.loggedError = false // Stops the poll flooding the log
+		this.firstAttempt = true
+		this.timestampOfRequest = Date.now()
 
 		this.configurations = []
+		this.groups = []
 
-		self.updateActions()
-		self.initFeedback()
-		self.updatePresets()
-		self.initVariables()
+		this.updateActions()
+		this.initFeedback()
+		this.updatePresets()
+		this.initVariables()
 
-		self.startPolling()
+		this.startPolling()
 	}
 
 	async destroy() {
@@ -82,13 +81,11 @@ class instance extends InstanceBase {
 
 	startPolling = function () {
 		this.log('debug', 'start polling')
-		let self = this
-
-		if (self.timer === undefined) {
-			self.timer = setInterval(self.poll.bind(self), pollIntervalMs)
+		if (this.timer === undefined) {
+			this.timer = setInterval(this.poll.bind(this), pollIntervalMs)
 		}
 
-		self.poll()
+		this.poll()
 	}
 
 	stopPolling() {
@@ -107,6 +104,11 @@ class instance extends InstanceBase {
 					this.updateVariables(response, false)
 				}
 			})
+			.catch(() => {
+				if (!this.loggedError) {
+					this.log('error', 'Helios setting polling failed.')
+				}
+			})
 
 		await this.sendGetRequest('/api/v1/presets')
 			.then((response) => {
@@ -116,6 +118,11 @@ class instance extends InstanceBase {
 						configurations.push({ id: preset.presetName, label: preset.presetName })
 					}
 					this.configurations = configurations
+				}
+			})
+			.catch(() => {
+				if (!this.loggedError) {
+					this.log('error', 'Helios preset polling failed')
 				}
 			})
 
@@ -163,6 +170,16 @@ class instance extends InstanceBase {
 			inputs.push({ id: input, label: input.toUpperCase() })
 		}
 		return inputs
+	}
+
+	getGroups() {
+		let groups = []
+		let index = 0
+		for (let group of this.groups) {
+			groups.push({ id: index, label: group.name })
+			index++
+		}
+		return groups
 	}
 }
 

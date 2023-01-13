@@ -21,6 +21,10 @@ Upon launch enter the IP of the Helios processor you wish to monitor and control
 - Tiles Info
 - Test Pattern
 - Test Pattern Moving
+- Redundancy Info
+- Redundancy Mode
+- Redundancy Role
+- Redundancy State
 
 ### Available actions
 
@@ -28,13 +32,17 @@ Upon launch enter the IP of the Helios processor you wish to monitor and control
 - Freeze (Enable, Disable, Toggle)
 - Show Test Pattern (Enable, Disable, Toggle)
 - Test Pattern Style
-- Screen Brigthness
+- Screen Brightness
 - Screen Gamma
 - Screen CCT
 - Input
 - Preset
 - Canvas Resolution
 - Canvas Position
+- Group Blackout
+- Group Test Pattern
+- Group Mask
+- Group Gains
 
 ### Available feedbacks
 

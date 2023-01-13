@@ -3,7 +3,7 @@ const { InstanceStatus } = require('@companion-module/base')
 
 const timeoutMs = 2000
 
-exports.checkIP = function(self, timestamp) {
+exports.checkIP = function (self, timestamp) {
 	// Check if the IP was set.
 	if (self.config.ip === undefined || self.config.ip.length === 0) {
 		if (self.loggedError === false) {
@@ -19,7 +19,7 @@ exports.checkIP = function(self, timestamp) {
 	return true
 }
 
-exports.sendGetRequest = function(patch) {
+exports.sendGetRequest = function (patch) {
 	let self = this
 
 	return new Promise(function (resolve, reject) {
@@ -50,7 +50,7 @@ exports.sendGetRequest = function(patch) {
 	})
 }
 
-exports.sendPostRequest = function(patch, data) {
+exports.sendPostRequest = function (patch, data) {
 	let self = this
 
 	const timestamp = Date.now()
@@ -75,7 +75,7 @@ exports.sendPostRequest = function(patch, data) {
 	})
 }
 
-exports.sendPatchRequest = function(data) {
+exports.sendPatchRequest = function (data) {
 	let self = this
 	const timestamp = Date.now()
 
@@ -99,7 +99,7 @@ exports.sendPatchRequest = function(data) {
 	})
 }
 
-exports.handleResponse = function(timestamp, err, result) {
+exports.handleResponse = function (timestamp, err, result) {
 	const self = this
 
 	// If the request is old it should be ignored.

@@ -44,55 +44,32 @@ exports.initVariables = function () {
 			name: 'Moving Test Pattern',
 			variableId: 'test_pattern_moving',
 		},
+		{
+			name: 'Redundancy Info',
+			variableId: 'redundancy_info',
+		},
+		{
+			name: 'Redundancy Mode',
+			variableId: 'redundancy_mode',
+		},
+		{
+			name: 'Redundancy Role',
+			variableId: 'redundancy_role',
+		},
+		{
+			name: 'Redundancy State',
+			variableId: 'redundancy_state',
+		},
 	]
 
 	this.setVariableDefinitions(variables)
 }
 
-exports.updateVariables = function(data, patch) {
+exports.updateVariables = function (data, patch) {
 	let self = this
 
 	if (data.dev === undefined) {
 		return
-	}
-
-	let ingest = data.dev.ingest
-	if (ingest !== undefined) {
-		if (!patch) {
-			self.ingest = ingest
-			self.checkFeedbacks('invalid_input')
-		}
-
-		if (ingest.input !== undefined) {
-			self.active_input = ingest.input
-			self.checkFeedbacks('active_input')
-		}
-
-		let inputs = ingest.inputs
-		if (inputs !== undefined) {
-			let inputArray = []
-			Object.entries(inputs).forEach((entry) => {
-				const [key, value] = entry
-				inputArray.push(key)
-			})
-			this.inputs = inputArray
-		}
-
-		let testPattern = ingest.testPattern
-		if (testPattern !== undefined) {
-			if (testPattern.enabled !== undefined) {
-				self.test_enabled = testPattern.enabled
-				self.checkFeedbacks('test_enabled')
-			}
-
-			if (testPattern.type !== undefined) {
-				self.setVariableValues({ test_pattern: testPattern.type })
-			}
-
-			if (testPattern.motion !== undefined) {
-				self.setVariableValues({ test_pattern_moving: testPattern.motion })
-			}
-		}
 	}
 
 	let display = data.dev.display
@@ -144,6 +121,60 @@ exports.updateVariables = function(data, patch) {
 
 		if (display.tilesInfo !== undefined) {
 			self.setVariableValues({ tiles_info: display.tilesInfo })
+		}
+
+		let redundancy = display.redundancy
+		if (redundancy !== undefined) {
+			self.setVariableValues({
+				redundancy_info: redundancy.info,
+				redundancy_mode: redundancy.mode,
+				redundancy_role: redundancy.role,
+				redundancy_state: redundancy.state,
+			})
+		}
+	}
+
+	let groups = data.dev.groups
+	if (groups !== undefined) {
+		self.groups = Object.keys(groups).map((key) => groups[key])
+	}
+
+	let ingest = data.dev.ingest
+	if (ingest !== undefined) {
+		if (!patch) {
+			self.ingest = ingest
+			self.checkFeedbacks('invalid_input')
+		}
+
+		if (ingest.input !== undefined) {
+			self.active_input = ingest.input
+			self.checkFeedbacks('active_input')
+		}
+
+		let inputs = ingest.inputs
+		if (inputs !== undefined) {
+			let inputArray = []
+			Object.entries(inputs).forEach((entry) => {
+				const [key] = entry
+				inputArray.push(key)
+			})
+			this.inputs = inputArray
+		}
+
+		let testPattern = ingest.testPattern
+		if (testPattern !== undefined) {
+			if (testPattern.enabled !== undefined) {
+				self.test_enabled = testPattern.enabled
+				self.checkFeedbacks('test_enabled')
+			}
+
+			if (testPattern.type !== undefined) {
+				self.setVariableValues({ test_pattern: testPattern.type })
+			}
+
+			if (testPattern.motion !== undefined) {
+				self.setVariableValues({ test_pattern_moving: testPattern.motion })
+			}
 		}
 	}
 }

@@ -24,7 +24,7 @@ exports.initFeedback = function () {
 			},
 		],
 		callback: function (feedback) {
-			return self.blackout === (feedback.options.state === 'true');
+			return self.blackout === (feedback.options.state === 'true')
 		},
 	}
 
@@ -49,7 +49,7 @@ exports.initFeedback = function () {
 			},
 		],
 		callback: function (feedback) {
-			return self.freeze === (feedback.options.state === 'true');
+			return self.freeze === (feedback.options.state === 'true')
 		},
 	}
 
@@ -71,7 +71,7 @@ exports.initFeedback = function () {
 			},
 		],
 		callback: function (feedback) {
-			return self.active_input === feedback.options.input;
+			return self.active_input === feedback.options.input
 		},
 	}
 
@@ -123,7 +123,7 @@ exports.initFeedback = function () {
 			},
 		],
 		callback: function (feedback) {
-			return self.test_enabled === (feedback.options.state === 'true');
+			return self.test_enabled === (feedback.options.state === 'true')
 		},
 	}
 
