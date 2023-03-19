@@ -117,6 +117,86 @@ exports.updateActions = function () {
 		},
 	}
 
+	actions['inc_brightness'] = {
+		name: 'Increase Screen Brightness',
+		options: [
+			{
+				type: 'number',
+				label: 'Brightness Amount',
+				id: 'brightness',
+				min: 0,
+				max: 5,
+				default: 1,
+				step: 0.01,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			let curBrightness = self.brightness;
+
+			if (curBrightness == undefined) {
+				curBrightness = 50;
+			}
+
+			let newBrightness = curBrightness + event.options.brightness;
+
+			if (newBrightness > 100) {
+				newBrightness = 100;
+			}
+
+			self.brightness = newBrightness;
+
+			object['dev'] = {
+				display: {
+					brightness: newBrightness,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['dec_brightness'] = {
+		name: 'Decrease Screen Brightness',
+		options: [
+			{
+				type: 'number',
+				label: 'Brightness Amount',
+				id: 'brightness',
+				min: 0,
+				max: 5,
+				default: 1,
+				step: 0.01,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			let curBrightness = self.brightness;
+
+			if (curBrightness == undefined) {
+				curBrightness = 50;
+			}
+
+			let newBrightness = curBrightness - event.options.brightness;
+
+			if (newBrightness < 0) {
+				newBrightness = 0;
+			}
+
+			self.brightness = newBrightness;
+
+			object['dev'] = {
+				display: {
+					brightness: newBrightness,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
 	actions['set_gamma'] = {
 		name: 'Screen Gamma',
 		options: [
