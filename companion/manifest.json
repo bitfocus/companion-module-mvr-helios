@@ -3,13 +3,14 @@
 	"name": "mvr-helios",
 	"shortname": "Helios",
 	"description": "Megapixel Visual Reality Helios",
-	"version": "2.0.0",
+	"version": "2.0.2",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-mvr-helios.git",
 	"bugs": "https://github.com/bitfocus/companion-module-mvr-helios/issues",
 	"maintainers": [
 		{
-			"name": "Jelle van Abbema"
+			"name": "Jelle van Abbema",
+			"email": "jellevanabbema@hotmail.nl"
 		},
 		{
 			"name": "Joseph Adams",
