@@ -68,7 +68,7 @@ exports.initVariables = function () {
 exports.updateVariables = function (data, patch) {
 	let self = this
 
-	if (data.dev === undefined) {
+	if (data === undefined || data.dev === undefined) {
 		return
 	}
 
