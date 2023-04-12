@@ -4,7 +4,7 @@ exports.updateActions = function () {
 	let actions = {}
 
 	actions['set_blackout'] = {
-		name: 'Blackout',
+		name: 'Set Blackout',
 		options: [
 			{
 				type: 'dropdown',
@@ -37,7 +37,7 @@ exports.updateActions = function () {
 	}
 
 	actions['set_freeze'] = {
-		name: 'Freeze',
+		name: 'Set Freeze',
 		options: [
 			{
 				type: 'dropdown',
@@ -70,7 +70,7 @@ exports.updateActions = function () {
 	}
 
 	actions['set_input'] = {
-		name: 'Input',
+		name: 'Set Input',
 		options: [
 			{
 				type: 'dropdown',
@@ -92,7 +92,7 @@ exports.updateActions = function () {
 	}
 
 	actions['set_brightness'] = {
-		name: 'Screen Brightness',
+		name: 'Set Screen Brightness',
 		options: [
 			{
 				type: 'number',
@@ -125,7 +125,7 @@ exports.updateActions = function () {
 				label: 'Brightness Amount',
 				id: 'brightness',
 				min: 0,
-				max: 5,
+				max: 10,
 				default: 1,
 				step: 0.01,
 				required: true,
@@ -136,7 +136,7 @@ exports.updateActions = function () {
 			let object = {}
 			let curBrightness = self.brightness;
 
-			if (curBrightness == undefined) {
+			if (curBrightness === undefined) {
 				curBrightness = 50;
 			}
 
@@ -165,7 +165,7 @@ exports.updateActions = function () {
 				label: 'Brightness Amount',
 				id: 'brightness',
 				min: 0,
-				max: 5,
+				max: 10,
 				default: 1,
 				step: 0.01,
 				required: true,
@@ -176,7 +176,7 @@ exports.updateActions = function () {
 			let object = {}
 			let curBrightness = self.brightness;
 
-			if (curBrightness == undefined) {
+			if (curBrightness === undefined) {
 				curBrightness = 50;
 			}
 
@@ -198,7 +198,7 @@ exports.updateActions = function () {
 	}
 
 	actions['set_gamma'] = {
-		name: 'Screen Gamma',
+		name: 'Set Screen Gamma',
 		options: [
 			{
 				type: 'number',
@@ -223,8 +223,88 @@ exports.updateActions = function () {
 		},
 	}
 
+	actions['inc_gamma'] = {
+		name: 'Increase Screen Gamma',
+		options: [
+			{
+				type: 'number',
+				label: 'Gamma Amount',
+				id: 'gamma',
+				min: 0,
+				max: 1,
+				default: 0.1,
+				step: 0.01,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			let curGamma = self.gamma;
+
+			if (curGamma === undefined) {
+				curGamma = 2.4;
+			}
+
+			let newGamma = curGamma + event.options.gamma;
+
+			if (newGamma > 3.9) {
+				newGamma = 3.9;
+			}
+
+			self.gamma = newGamma;
+
+			object['dev'] = {
+				display: {
+					gamma: newGamma,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['dec_gamma'] = {
+		name: 'Decrease Screen Gamma',
+		options: [
+			{
+				type: 'number',
+				label: 'Gamma Amount',
+				id: 'gamma',
+				min: 0,
+				max: 1,
+				default: 0.1,
+				step: 0.01,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			let curGamma = self.gamma;
+
+			if (curGamma === undefined) {
+				curGamma = 2.4;
+			}
+
+			let newGamma = curGamma - event.options.gamma;
+
+			if (newGamma < 1) {
+				newGamma = 1;
+			}
+
+			self.gamma = newGamma;
+
+			object['dev'] = {
+				display: {
+					gamma: newGamma,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
 	actions['set_cct'] = {
-		name: 'Screen Color Temperature',
+		name: 'Set Screen Color Temperature',
 		options: [
 			{
 				type: 'number',
@@ -249,8 +329,88 @@ exports.updateActions = function () {
 		},
 	}
 
+	actions['inc_gamma'] = {
+		name: 'Increase Screen Color Temperature',
+		options: [
+			{
+				type: 'number',
+				label: 'CT Amount',
+				id: 'cct',
+				min: 0,
+				max: 1000,
+				default: 100,
+				step: 1,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			let curCCT = self.cct;
+
+			if (curCCT === undefined) {
+				curCCT = 6504;
+			}
+
+			let newCCT = curCCT + event.options.cct;
+
+			if (newCCT > 10000) {
+				newCCT = 10000;
+			}
+
+			self.cct = newCCT;
+
+			object['dev'] = {
+				display: {
+					cct: newCCT,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['dec_cct'] = {
+		name: 'Decrease Screen Colour Temperature',
+		options: [
+			{
+				type: 'number',
+				label: 'CT Amount',
+				id: 'cct',
+				min: 0,
+				max: 1000,
+				default: 100,
+				step: 1,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			let curCCT = self.cct;
+
+			if (curCCT === undefined) {
+				curCCT = 6504;
+			}
+
+			let newCCT = curCCT - event.options.cct;
+
+			if (newCCT < 1667) {
+				newCCT = 1667;
+			}
+
+			self.cct = newCCT;
+
+			object['dev'] = {
+				display: {
+					cct: newCCT,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
 	actions['set_resolution'] = {
-		name: 'Canvas Resolution',
+		name: 'Set Canvas Resolution',
 		options: [
 			{
 				type: 'number',
@@ -286,7 +446,7 @@ exports.updateActions = function () {
 	}
 
 	actions['set_position'] = {
-		name: 'Canvas Position',
+		name: 'Set Canvas Position',
 		options: [
 			{
 				type: 'number',
@@ -428,7 +588,7 @@ exports.updateActions = function () {
 	}
 
 	actions['set_preset_select'] = {
-		name: 'Select Preset Dropdown',
+		name: 'Select Preset (Dropdown)',
 		options: [
 			{
 				type: 'dropdown',
@@ -446,7 +606,7 @@ exports.updateActions = function () {
 	}
 
 	actions['set_group_blackout'] = {
-		name: 'Group Blackout',
+		name: 'Set Group Blackout',
 		options: [
 			{
 				type: 'dropdown',
