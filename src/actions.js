@@ -140,7 +140,7 @@ exports.updateActions = function () {
 				curBrightness = 50;
 			}
 
-			let newBrightness = curBrightness + event.options.brightness;
+			let newBrightness = (parseFloat(curBrightness) + event.options.brightness).toFixed(1) - 0;
 
 			if (newBrightness > 100) {
 				newBrightness = 100;
@@ -180,7 +180,7 @@ exports.updateActions = function () {
 				curBrightness = 50;
 			}
 
-			let newBrightness = curBrightness - event.options.brightness;
+			let newBrightness = (curBrightness - event.options.brightness).toFixed(1) - 0;
 
 			if (newBrightness < 0) {
 				newBrightness = 0;
@@ -246,7 +246,7 @@ exports.updateActions = function () {
 				curGamma = 2.4;
 			}
 
-			let newGamma = curGamma + event.options.gamma;
+			let newGamma = (parseFloat(curGamma) + event.options.gamma).toFixed(2) - 0;
 
 			if (newGamma > 3.9) {
 				newGamma = 3.9;
@@ -286,7 +286,7 @@ exports.updateActions = function () {
 				curGamma = 2.4;
 			}
 
-			let newGamma = curGamma - event.options.gamma;
+			let newGamma = (curGamma - event.options.gamma).toFixed(2) - 0;
 
 			if (newGamma < 1) {
 				newGamma = 1;
@@ -352,7 +352,7 @@ exports.updateActions = function () {
 				curCCT = 6504;
 			}
 
-			let newCCT = curCCT + event.options.cct;
+			let newCCT = (parseFloat(curCCT) + event.options.cct).toFixed(0);
 
 			if (newCCT > 10000) {
 				newCCT = 10000;
@@ -392,7 +392,7 @@ exports.updateActions = function () {
 				curCCT = 6504;
 			}
 
-			let newCCT = curCCT - event.options.cct;
+			let newCCT = (curCCT - event.options.cct).toFixed(0);
 
 			if (newCCT < 1667) {
 				newCCT = 1667;
