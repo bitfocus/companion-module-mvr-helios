@@ -329,7 +329,7 @@ exports.updateActions = function () {
 		},
 	}
 
-	actions['inc_gamma'] = {
+	actions['inc_cct'] = {
 		name: 'Increase Screen Color Temperature',
 		options: [
 			{
