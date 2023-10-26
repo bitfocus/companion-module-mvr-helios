@@ -409,6 +409,112 @@ exports.updateActions = function () {
 		},
 	}
 
+	actions['set_duv'] = {
+		name: 'Set Screen Duv',
+		options: [
+			{
+				type: 'number',
+				label: 'Duv',
+				id: 'duv',
+				min: -0.01,
+				max: 0.01,
+				default: 0,
+				step: 0.0001,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			object['dev'] = {
+				display: {
+					cctDuv: event.options.duv,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['inc_duv'] = {
+		name: 'Increase Screen Duv',
+		options: [
+			{
+				type: 'number',
+				label: 'Duv Amount',
+				id: 'duv',
+				min: -0.01,
+				max: 0.01,
+				default: 0.001,
+				step: 0.0001,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			let curDuv = self.duv;
+
+			if (curDuv === undefined) {
+				curDuv = 0;
+			}
+
+			let newDuv = (parseFloat(curDuv) + event.options.duv).toFixed(4) - 0;
+
+			if (newDuv > 0.01) {
+				newDuv = 0.01;
+			}
+
+			self.duv = newDuv;
+
+			object['dev'] = {
+				display: {
+					cctDuv: newDuv,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['dec_duv'] = {
+		name: 'Decrease Screen Duv',
+		options: [
+			{
+				type: 'number',
+				label: 'Duv Amount',
+				id: 'duv',
+				min: -0.01,
+				max: 0.01,
+				default: 0.001,
+				step: 0.0001,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			let curDuv = self.duv;
+
+			if (curDuv === undefined) {
+				curDuv = 0;
+			}
+
+			let newDuv = (curDuv - event.options.duv).toFixed(4) - 0;
+
+			if (newDuv < -0.01) {
+				newDuv = -0.01;
+			}
+
+			self.duv = newDuv;
+
+			object['dev'] = {
+				display: {
+					cctDuv: newDuv,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
 	actions['set_resolution'] = {
 		name: 'Set Canvas Resolution',
 		options: [

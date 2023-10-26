@@ -13,6 +13,10 @@ exports.initVariables = function () {
 			variableId: 'screen_cct',
 		},
 		{
+			name: 'Screen Duv',
+			variableId: 'screen_duv',
+		},
+		{
 			name: 'Canvas Width',
 			variableId: 'canvas_width',
 		},
@@ -97,6 +101,11 @@ exports.updateVariables = function (data, patch) {
 		if (display.cct !== undefined) {
 			self.cct = display.cct
 			self.setVariableValues({ screen_cct: self.cct })
+		}
+
+		if (display.cctDuv !== undefined) {
+			self.duv = display.cctDuv
+			self.setVariableValues({ screen_duv: self.duv })
 		}
 
 		if (display.width !== undefined) {
