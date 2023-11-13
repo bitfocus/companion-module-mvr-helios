@@ -62,7 +62,7 @@ class instance extends InstanceBase {
 				id: 'info',
 				width: 12,
 				label: 'Firmware',
-				value: 'Latest supported firmware version: HELIOS v22.12',
+				value: 'Latest supported firmware version: HELIOS v23.11',
 			},
 			{
 				type: 'textinput',
