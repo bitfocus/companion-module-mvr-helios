@@ -134,19 +134,19 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let object = {}
-			let curBrightness = self.brightness;
+			let curBrightness = self.brightness
 
 			if (curBrightness === undefined) {
-				curBrightness = 50;
+				curBrightness = 50
 			}
 
-			let newBrightness = (parseFloat(curBrightness) + event.options.brightness).toFixed(1) - 0;
+			let newBrightness = (parseFloat(curBrightness) + event.options.brightness).toFixed(1) - 0
 
 			if (newBrightness > 100) {
-				newBrightness = 100;
+				newBrightness = 100
 			}
 
-			self.brightness = newBrightness;
+			self.brightness = newBrightness
 
 			object['dev'] = {
 				display: {
@@ -174,19 +174,19 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let object = {}
-			let curBrightness = self.brightness;
+			let curBrightness = self.brightness
 
 			if (curBrightness === undefined) {
-				curBrightness = 50;
+				curBrightness = 50
 			}
 
-			let newBrightness = (curBrightness - event.options.brightness).toFixed(1) - 0;
+			let newBrightness = (curBrightness - event.options.brightness).toFixed(1) - 0
 
 			if (newBrightness < 0) {
-				newBrightness = 0;
+				newBrightness = 0
 			}
 
-			self.brightness = newBrightness;
+			self.brightness = newBrightness
 
 			object['dev'] = {
 				display: {
@@ -240,19 +240,19 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let object = {}
-			let curGamma = self.gamma;
+			let curGamma = self.gamma
 
 			if (curGamma === undefined) {
-				curGamma = 2.4;
+				curGamma = 2.4
 			}
 
-			let newGamma = (parseFloat(curGamma) + event.options.gamma).toFixed(2) - 0;
+			let newGamma = (parseFloat(curGamma) + event.options.gamma).toFixed(2) - 0
 
 			if (newGamma > 3.9) {
-				newGamma = 3.9;
+				newGamma = 3.9
 			}
 
-			self.gamma = newGamma;
+			self.gamma = newGamma
 
 			object['dev'] = {
 				display: {
@@ -280,19 +280,19 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let object = {}
-			let curGamma = self.gamma;
+			let curGamma = self.gamma
 
 			if (curGamma === undefined) {
-				curGamma = 2.4;
+				curGamma = 2.4
 			}
 
-			let newGamma = (curGamma - event.options.gamma).toFixed(2) - 0;
+			let newGamma = (curGamma - event.options.gamma).toFixed(2) - 0
 
 			if (newGamma < 1) {
-				newGamma = 1;
+				newGamma = 1
 			}
 
-			self.gamma = newGamma;
+			self.gamma = newGamma
 
 			object['dev'] = {
 				display: {
@@ -346,19 +346,19 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let object = {}
-			let curCCT = self.cct;
+			let curCCT = self.cct
 
 			if (curCCT === undefined) {
-				curCCT = 6504;
+				curCCT = 6504
 			}
 
-			let newCCT = (parseFloat(curCCT) + event.options.cct).toFixed(0);
+			let newCCT = (parseFloat(curCCT) + event.options.cct).toFixed(0)
 
 			if (newCCT > 10000) {
-				newCCT = 10000;
+				newCCT = 10000
 			}
 
-			self.cct = newCCT;
+			self.cct = newCCT
 
 			object['dev'] = {
 				display: {
@@ -386,19 +386,19 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let object = {}
-			let curCCT = self.cct;
+			let curCCT = self.cct
 
 			if (curCCT === undefined) {
-				curCCT = 6504;
+				curCCT = 6504
 			}
 
-			let newCCT = (curCCT - event.options.cct).toFixed(0);
+			let newCCT = (curCCT - event.options.cct).toFixed(0)
 
 			if (newCCT < 1667) {
-				newCCT = 1667;
+				newCCT = 1667
 			}
 
-			self.cct = newCCT;
+			self.cct = newCCT
 
 			object['dev'] = {
 				display: {
@@ -452,19 +452,19 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let object = {}
-			let curDuv = self.duv;
+			let curDuv = self.duv
 
 			if (curDuv === undefined) {
-				curDuv = 0;
+				curDuv = 0
 			}
 
-			let newDuv = (parseFloat(curDuv) + event.options.duv).toFixed(4) - 0;
+			let newDuv = (parseFloat(curDuv) + event.options.duv).toFixed(4) - 0
 
 			if (newDuv > 0.01) {
-				newDuv = 0.01;
+				newDuv = 0.01
 			}
 
-			self.duv = newDuv;
+			self.duv = newDuv
 
 			object['dev'] = {
 				display: {
@@ -492,19 +492,19 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let object = {}
-			let curDuv = self.duv;
+			let curDuv = self.duv
 
 			if (curDuv === undefined) {
-				curDuv = 0;
+				curDuv = 0
 			}
 
-			let newDuv = (curDuv - event.options.duv).toFixed(4) - 0;
+			let newDuv = (curDuv - event.options.duv).toFixed(4) - 0
 
 			if (newDuv < -0.01) {
-				newDuv = -0.01;
+				newDuv = -0.01
 			}
 
-			self.duv = newDuv;
+			self.duv = newDuv
 
 			object['dev'] = {
 				display: {
