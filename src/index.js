@@ -6,7 +6,7 @@ const variables = require('./variables')
 const requests = require('./requests')
 
 // Constants
-const pollIntervalMs = 1000
+const pollIntervalMs = 500
 
 class instance extends InstanceBase {
 	constructor(internal) {
@@ -28,6 +28,7 @@ class instance extends InstanceBase {
 
 		// Variables
 		this.timer = undefined
+		this.pollPresets = false
 		this.loggedError = false // Stops the poll flooding the log
 		this.firstAttempt = true
 		this.timestampOfRequest = Date.now()
@@ -98,34 +99,37 @@ class instance extends InstanceBase {
 	}
 
 	async poll() {
-		await this.sendGetRequest('/api/v1/public')
-			.then((response) => {
-				if (response !== undefined) {
-					this.updateVariables(response, false)
-				}
-			})
-			.catch(() => {
-				if (!this.loggedError) {
-					this.log('error', 'Helios setting polling failed.')
-				}
-			})
-
-		await this.sendGetRequest('/api/v1/presets')
-			.then((response) => {
-				if (response !== undefined) {
-					let configurations = []
-					for (let preset of response.presets) {
-						configurations.push({ id: preset.presetName, label: preset.presetName })
+		if (!this.pollPresets) {
+			await this.sendGetRequest('/api/v1/public')
+				.then((response) => {
+					if (response !== undefined) {
+						this.updateVariables(response, false)
 					}
-					this.configurations = configurations
-				}
-			})
-			.catch(() => {
-				if (!this.loggedError) {
-					this.log('error', 'Helios preset polling failed')
-				}
-			})
+				})
+				.catch(() => {
+					if (!this.loggedError) {
+						this.log('error', 'Helios setting polling failed.')
+					}
+				})
+		} else {
+			await this.sendGetRequest('/api/v1/presets')
+				.then((response) => {
+					if (response !== undefined) {
+						let configurations = []
+						for (let preset of response.presets) {
+							configurations.push({ id: preset.presetName, label: preset.presetName })
+						}
+						this.configurations = configurations
+					}
+				})
+				.catch(() => {
+					if (!this.loggedError) {
+						this.log('error', 'Helios preset polling failed')
+					}
+				})
+		}
 
+		this.pollPresets = !this.pollPresets
 		this.updateActions()
 		this.updatePresets()
 	}
