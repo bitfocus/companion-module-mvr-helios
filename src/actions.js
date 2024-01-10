@@ -362,7 +362,7 @@ exports.updateActions = function () {
 
 			object['dev'] = {
 				display: {
-					cct: newCCT,
+					cct: Number.parseInt(newCCT, 10),
 				},
 			}
 			self.sendPatchRequest(object)
@@ -402,7 +402,7 @@ exports.updateActions = function () {
 
 			object['dev'] = {
 				display: {
-					cct: newCCT,
+					cct: Number.parseInt(newCCT, 10),
 				},
 			}
 			self.sendPatchRequest(object)
