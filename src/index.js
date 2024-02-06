@@ -28,12 +28,13 @@ class instance extends InstanceBase {
 
 		// Variables
 		this.timer = undefined
-		this.pollPresets = false
+		this.pollPresets = 1
 		this.loggedError = false // Stops the poll flooding the log
 		this.firstAttempt = true
 		this.timestampOfRequest = Date.now()
 
 		this.configurations = []
+		this.media = []
 		this.groups = []
 
 		this.updateActions()
@@ -99,7 +100,8 @@ class instance extends InstanceBase {
 	}
 
 	async poll() {
-		if (!this.pollPresets) {
+		if (this.pollPresets <= 1) {
+			this.pollPresets = 2
 			await this.sendGetRequest('/api/v1/public')
 				.then((response) => {
 					if (response !== undefined) {
@@ -111,7 +113,8 @@ class instance extends InstanceBase {
 						this.log('error', 'Helios setting polling failed.')
 					}
 				})
-		} else {
+		} else if (this.pollPresets == 2) {
+			this.pollPresets = 3
 			await this.sendGetRequest('/api/v1/presets')
 				.then((response) => {
 					if (response !== undefined) {
@@ -127,15 +130,35 @@ class instance extends InstanceBase {
 						this.log('error', 'Helios preset polling failed')
 					}
 				})
+		} else if (this.pollPresets == 3) {
+			this.pollPresets = 1
+			await this.sendGetRequest('/api/v1/media')
+				.then((response) => {
+					if (response !== undefined) {
+						let stills = []
+						for (let media of response.media) {
+							stills.push({ id: media.name, label: media.name })
+						}
+						this.media = stills
+					}
+				})
+				.catch(() => {
+					if (!this.loggedError) {
+						this.log('error', 'Helios media polling failed')
+					}
+				})
 		}
 
-		this.pollPresets = !this.pollPresets
 		this.updateActions()
 		this.updatePresets()
 	}
 
 	setPreset(data) {
 		this.sendPostRequest('/api/v1/presets/apply', data)
+	}
+
+	setStill(data) {
+		this.sendPostRequest('/api/v1/media/show', data)
 	}
 
 	getInputs() {

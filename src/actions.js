@@ -91,6 +91,33 @@ exports.updateActions = function () {
 		},
 	}
 
+	actions['set_still'] = {
+		name: 'Set Still',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Select Still',
+				id: 'still',
+				default: '',
+				choices: self.media,
+			},
+		],
+		callback: (event) => {
+			let object = {}
+			object['name'] = event.options.still
+			self.setStill(object)
+		},
+	}
+
+	actions['hide_still'] = {
+		name: 'Hide Still',
+		callback: (event) => {
+			let object = {}
+			object['name'] = null
+			self.setStill(object)
+		},
+	}
+
 	actions['set_brightness'] = {
 		name: 'Set Screen Brightness',
 		options: [

@@ -110,7 +110,7 @@ exports.handleResponse = function (timestamp, err, result) {
 	self.timestampOfRequest = timestamp
 
 	// Check if request was unsuccessful.
-	if (err !== null || result.statusCode !== 200) {
+	if ((err !== null || result.statusCode !== 200) && result.statusCode !== 204) {
 		if (self.loggedError === false) {
 			let msg = 'HTTP GET Request for ' + self.config.ip + ' failed'
 			if (err !== null) {
