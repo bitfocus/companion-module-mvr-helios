@@ -64,7 +64,7 @@ class instance extends InstanceBase {
 				id: 'info',
 				width: 12,
 				label: 'Firmware',
-				value: 'Latest supported firmware version: HELIOS v23.12',
+				value: 'Latest supported firmware version: HELIOS v24.03',
 			},
 			{
 				type: 'textinput',
@@ -72,6 +72,12 @@ class instance extends InstanceBase {
 				label: 'Target IP',
 				width: 6,
 				regex: Regex.IP,
+			},
+			{
+				type: 'checkbox',
+				id: 'poll_presets',
+				label: 'Poll for available configurations',
+				default: true,
 			},
 		]
 	}
@@ -113,24 +119,27 @@ class instance extends InstanceBase {
 						this.log('error', 'Helios setting polling failed.')
 					}
 				})
-		} else if (this.pollPresets == 2) {
+		} else if (this.pollPresets === 2) {
 			this.pollPresets = 3
-			await this.sendGetRequest('/api/v1/presets')
-				.then((response) => {
-					if (response !== undefined) {
-						let configurations = []
-						for (let preset of response.presets) {
-							configurations.push({ id: preset.presetName, label: preset.presetName })
+			if (this.config.poll_presets) {
+				await this.sendGetRequest('/api/v1/presets/list')
+					.then((response) => {
+						this.log('error', JSON.stringify(response))
+						if (response !== undefined) {
+							let configurations = []
+							for (let preset of response.presets) {
+								configurations.push({ id: preset.presetName, label: preset.presetName })
+							}
+							this.configurations = configurations
 						}
-						this.configurations = configurations
-					}
-				})
-				.catch(() => {
-					if (!this.loggedError) {
-						this.log('error', 'Helios preset polling failed')
-					}
-				})
-		} else if (this.pollPresets == 3) {
+					})
+					.catch(() => {
+						if (!this.loggedError) {
+							this.log('error', 'Helios preset polling failed')
+						}
+					})
+			}
+		} else if (this.pollPresets === 3) {
 			this.pollPresets = 1
 			await this.sendGetRequest('/api/v1/media')
 				.then((response) => {
