@@ -31,7 +31,7 @@ class instance extends InstanceBase {
 		this.pollPresets = 1
 		this.loggedError = false // Stops the poll flooding the log
 		this.firstAttempt = true
-		this.timestampOfRequest = Date.now()
+		this.requestWaiting = false
 
 		this.configurations = []
 		this.media = []
@@ -64,7 +64,7 @@ class instance extends InstanceBase {
 				id: 'info',
 				width: 12,
 				label: 'Firmware',
-				value: 'Latest supported firmware version: HELIOS v24.03',
+				value: 'Latest supported firmware version: HELIOS v24.07',
 			},
 			{
 				type: 'textinput',
@@ -114,9 +114,9 @@ class instance extends InstanceBase {
 						this.updateVariables(response, false)
 					}
 				})
-				.catch(() => {
+				.catch((reason) => {
 					if (!this.loggedError) {
-						this.log('error', 'Helios setting polling failed.')
+						this.log('error', 'Helios setting polling failed. ' + reason)
 					}
 				})
 		} else if (this.pollPresets === 2) {
@@ -124,7 +124,6 @@ class instance extends InstanceBase {
 			if (this.config.poll_presets) {
 				await this.sendGetRequest('/api/v1/presets/list')
 					.then((response) => {
-						this.log('error', JSON.stringify(response))
 						if (response !== undefined) {
 							let configurations = []
 							for (let preset of response.presets) {
@@ -133,9 +132,9 @@ class instance extends InstanceBase {
 							this.configurations = configurations
 						}
 					})
-					.catch(() => {
+					.catch((reason) => {
 						if (!this.loggedError) {
-							this.log('error', 'Helios preset polling failed')
+							this.log('error', 'Helios preset polling failed. ' + reason)
 						}
 					})
 			}
@@ -151,9 +150,9 @@ class instance extends InstanceBase {
 						this.media = stills
 					}
 				})
-				.catch(() => {
+				.catch((reason) => {
 					if (!this.loggedError) {
-						this.log('error', 'Helios media polling failed')
+						this.log('error', 'Helios media polling failed. ' + reason)
 					}
 				})
 		}
