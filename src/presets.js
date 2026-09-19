@@ -10,7 +10,7 @@ exports.updatePresets = function () {
 			style: {
 				text: input.toUpperCase(),
 				size: '18',
-				color: '16777215',
+				color: combineRgb(255, 255, 255),
 				bgcolor: combineRgb(0, 0, 0),
 			},
 			steps: [

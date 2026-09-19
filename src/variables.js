@@ -1,5 +1,9 @@
 exports.initVariables = function () {
-	let variables = [
+	this.setVariableDefinitions(this.getBaseVariables())
+}
+
+exports.getBaseVariables = function () {
+	return [
 		{
 			name: 'Screen Brightness',
 			variableId: 'screen_brightness',
@@ -65,8 +69,34 @@ exports.initVariables = function () {
 			variableId: 'redundancy_state',
 		},
 	]
+}
 
-	this.setVariableDefinitions(variables)
+exports.syncGroupVariables = function () {
+	const self = this
+	const entries = Object.entries(self.groups)
+
+	// Only rebuild the definitions when keys or names change
+	const signature = JSON.stringify(entries.map(([key, group]) => [key, group.name]))
+	if (signature !== self.groupSignature) {
+		self.groupSignature = signature
+
+		const groupVars = entries.map(([key, group]) => ({
+			variableId: `group_${varId(key)}_brightness`,
+			name: `Group ${group.name ?? key} Brightness`,
+		}))
+		self.setVariableDefinitions([...self.getBaseVariables(), ...groupVars])
+	}
+
+	const values = {}
+	for (const [key, group] of entries) {
+		values[`group_${varId(key)}_brightness`] = group.gains?.i
+	}
+	self.setVariableValues(values)
+}
+
+// variable ids only allow letters, digits, _ and -
+function varId(key) {
+	return String(key).replace(/[^a-zA-Z0-9_-]/g, '_')
 }
 
 exports.updateVariables = function (data, patch) {
@@ -144,8 +174,9 @@ exports.updateVariables = function (data, patch) {
 	}
 
 	let groups = data.dev.groups
-	if (groups !== undefined) {
-		self.groups = Object.keys(groups).map((key) => groups[key])
+	if (groups !== undefined && !patch) {
+		self.groups = groups
+		self.syncGroupVariables()
 	}
 
 	let ingest = data.dev.ingest
@@ -161,7 +192,7 @@ exports.updateVariables = function (data, patch) {
 		}
 
 		let inputs = ingest.inputs
-		if (inputs !== undefined) {
+		if (inputs !== undefined && !patch) {
 			let inputArray = []
 			Object.entries(inputs).forEach((entry) => {
 				const [key] = entry

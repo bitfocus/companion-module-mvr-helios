@@ -2,8 +2,8 @@
 	"id": "mvr-helios",
 	"name": "mvr-helios",
 	"shortname": "Helios",
-	"description": "Megapixel Visual Reality Helios",
-	"version": "2.2.1",
+	"description": "Megapixel Visual Reality - Helios",
+	"version": "2.3.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-mvr-helios.git",
 	"bugs": "https://github.com/bitfocus/companion-module-mvr-helios/issues",
@@ -26,5 +26,5 @@
 	},
 	"manufacturer": "Megapixel",
 	"products": ["Helios"],
-	"keywords": ["MVR", "Megapixel VR", "Megapixel", "Helios", "LED Screen"]
+	"keywords": ["MVR", "Megapixel VR", "Megapixel", "Helios", "LED Screen", "LED Processor"]
 }

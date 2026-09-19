@@ -13,6 +13,7 @@ Upon launch enter the IP of the Helios processor you wish to monitor and control
 - Screen Brightness
 - Screen Gamma
 - Screen CCT
+- Group Brightness
 - Canvas Width
 - Canvas Height
 - Canvas X
@@ -34,17 +35,19 @@ Upon launch enter the IP of the Helios processor you wish to monitor and control
 - Show Still
 - Hide Still
 - Test Pattern Style
-- Screen Brightness
-- Screen Gamma
-- Screen CCT
+- Screen Brightness (Set, Increase, Decrease)
+- Screen Gamma (Set, Increase, Decrease)
+- Screen CCT (Set, Increase, Decrease)
+- Screen dUV (Set, Increase, Decrease)
 - Input
 - Preset
 - Canvas Resolution
 - Canvas Position
+- Group Brightness (Increase, Decrease)
 - Group Blackout
 - Group Test Pattern
 - Group Mask
-- Group Gains
+- Group Gains (includes Brightness, Red, Green, Blue)
 
 ### Available feedbacks
 

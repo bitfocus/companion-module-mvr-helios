@@ -1,4 +1,4 @@
-const { combineRgb } = require('@companion-module/base')
+const { combineRgb, splitRgb } = require('@companion-module/base')
 exports.updateActions = function () {
 	let self = this
 	let actions = {}
@@ -111,6 +111,7 @@ exports.updateActions = function () {
 
 	actions['hide_still'] = {
 		name: 'Hide Still',
+		options: [],
 		callback: (event) => {
 			let object = {}
 			object['name'] = null
@@ -275,8 +276,8 @@ exports.updateActions = function () {
 
 			let newGamma = (parseFloat(curGamma) + event.options.gamma).toFixed(2) - 0
 
-			if (newGamma > 3.9) {
-				newGamma = 3.9
+			if (newGamma > 4) {
+				newGamma = 4
 			}
 
 			self.gamma = newGamma
@@ -379,7 +380,7 @@ exports.updateActions = function () {
 				curCCT = 6504
 			}
 
-			let newCCT = (parseFloat(curCCT) + event.options.cct).toFixed(0)
+			let newCCT = Math.round(parseFloat(curCCT) + event.options.cct)
 
 			if (newCCT > 10000) {
 				newCCT = 10000
@@ -419,7 +420,7 @@ exports.updateActions = function () {
 				curCCT = 6504
 			}
 
-			let newCCT = (curCCT - event.options.cct).toFixed(0)
+			let newCCT = Math.round(curCCT - event.options.cct)
 
 			if (newCCT < 1667) {
 				newCCT = 1667
@@ -669,7 +670,7 @@ exports.updateActions = function () {
 					{ id: 'horizontalGraySteps', label: 'Horizontal Gray Steps' },
 					{ id: 'smallGrid', label: 'Small Grid' },
 					{ id: 'verticalGradient', label: 'Vertical Gradient' },
-					{ id: 'verticalGraySteps', label: 'verticalGraySteps' },
+					{ id: 'verticalGraySteps', label: 'Vertical Gray Steps' },
 				],
 			},
 			{
@@ -709,7 +710,7 @@ exports.updateActions = function () {
 		options: [
 			{
 				type: 'textinput',
-				label: 'Preset Nane',
+				label: 'Preset Name',
 				id: 'preset',
 			},
 		],
@@ -745,7 +746,7 @@ exports.updateActions = function () {
 				type: 'dropdown',
 				label: 'Select Group',
 				id: 'group',
-				default: 0,
+				default: this.getGroups()[0]?.id ?? '',
 				choices: this.getGroups(),
 			},
 			{
@@ -764,7 +765,7 @@ exports.updateActions = function () {
 			let opt = event.options
 			let value
 			if (opt.bo === 'toggle') {
-				value = !self.groups[opt.group].blackout
+				value = !self.groups[opt.group]?.blackout
 			} else {
 				value = opt.bo === 'true'
 			}
@@ -787,7 +788,7 @@ exports.updateActions = function () {
 				type: 'dropdown',
 				label: 'Select Group',
 				id: 'group',
-				default: 0,
+				default: this.getGroups()[0]?.id ?? '',
 				choices: this.getGroups(),
 			},
 			{
@@ -806,7 +807,7 @@ exports.updateActions = function () {
 			let opt = event.options
 			let value
 			if (opt.show === 'toggle') {
-				value = !self.groups[opt.group].testPattern.enabled
+				value = !self.groups[opt.group]?.testPattern?.enabled
 			} else {
 				value = opt.show === 'true'
 			}
@@ -831,7 +832,7 @@ exports.updateActions = function () {
 				type: 'dropdown',
 				label: 'Select Group',
 				id: 'group',
-				default: 0,
+				default: this.getGroups()[0]?.id ?? '',
 				choices: this.getGroups(),
 			},
 			{
@@ -850,7 +851,7 @@ exports.updateActions = function () {
 			let opt = event.options
 			let value
 			if (opt.show === 'toggle') {
-				value = !self.groups[opt.group].mask.enabled
+				value = !self.groups[opt.group]?.mask?.enabled
 			} else {
 				value = opt.show === 'true'
 			}
@@ -875,7 +876,7 @@ exports.updateActions = function () {
 				type: 'dropdown',
 				label: 'Select Group',
 				id: 'group',
-				default: 0,
+				default: this.getGroups()[0]?.id ?? '',
 				choices: this.getGroups(),
 			},
 			{
@@ -949,7 +950,7 @@ exports.updateActions = function () {
 				type: 'dropdown',
 				label: 'Select Group',
 				id: 'group',
-				default: 0,
+				default: this.getGroups()[0]?.id ?? '',
 				choices: this.getGroups(),
 			},
 			{
@@ -966,9 +967,11 @@ exports.updateActions = function () {
 		],
 		callback: (event) => {
 			let opt = event.options
+
 			const selGroup = self.groups[opt.group]
-			
-			let curBrightness = selGroup.gains.i
+			if (!selGroup) return
+
+			let curBrightness = selGroup.gains?.i ?? 1
 
 			if (curBrightness === undefined) {
 				curBrightness = 1
@@ -980,7 +983,7 @@ exports.updateActions = function () {
 				newBrightness = 2
 			}
 
-			selGroup.gains.i = newBrightness
+			selGroup.gains = { ...selGroup.gains, i: newBrightness }
 
 			let object = {}
 			object['dev'] = {
@@ -1003,7 +1006,7 @@ exports.updateActions = function () {
 				type: 'dropdown',
 				label: 'Select Group',
 				id: 'group',
-				default: 0,
+				default: this.getGroups()[0]?.id ?? '',
 				choices: this.getGroups(),
 			},
 			{
@@ -1011,7 +1014,7 @@ exports.updateActions = function () {
 				label: 'Brightness Amount',
 				id: 'brightness',
 				min: 0,
-				max: 2,
+				max: 1,
 				default: 0.01,
 				step: 0.01,
 				required: true,
@@ -1021,8 +1024,9 @@ exports.updateActions = function () {
 		callback: (event) => {
 			let opt = event.options
 			const selGroup = self.groups[opt.group]
-			
-			let curBrightness = selGroup.gains.i
+			if (!selGroup) return
+
+			let curBrightness = selGroup.gains?.i ?? 1
 
 			if (curBrightness === undefined) {
 				curBrightness = 1
@@ -1034,7 +1038,7 @@ exports.updateActions = function () {
 				newBrightness = 0
 			}
 
-			selGroup.gains.i = newBrightness
+			selGroup.gains = { ...selGroup.gains, i: newBrightness }
 
 			let object = {}
 			object['dev'] = {
@@ -1058,24 +1062,23 @@ exports.updateActions = function () {
 				label: 'Colour',
 				id: 'color',
 				default: combineRgb(255, 255, 255),
+				enableAlpha: true,
+				returnType: 'number',
 			},
 		],
 		callback: (event) => {
-			let opt = event.options
-			self.log('debug', 'Color: ' + opt.color)
+			const { r, g, b, a } = splitRgb(event.options.color)
 
-			let rgb = opt.color.replace(/[^\d,]/g, '').split(',')
-
-			self.log('debug', rgb[0])
 			let object = {}
 			object['dev'] = {
 				display: {
 					out: {
 						adjust: {
 							lift: {
-								r: opt.color.red,
-								g: opt.color.green,
-								b: opt.color.blue,
+								r: (r - 127) / 255,
+								g: (g - 127) / 255,
+								b: (b - 127) / 255,
+								i: a * 2 - 1,
 							},
 						},
 					},

@@ -5,6 +5,7 @@ exports.sendGetRequest = function (patch) {
 
 	const request = new Request('http://' + self.config.ip + patch, {
 		method: 'GET',
+		signal: AbortSignal.timeout(2000),
 	})
 
 	return self.sendFetch(request, true)
@@ -19,6 +20,7 @@ exports.sendPostRequest = function (patch, data) {
 		headers: {
 			'Content-type': 'application/json',
 		},
+		signal: AbortSignal.timeout(2000),
 	})
 
 	self
@@ -36,6 +38,7 @@ exports.sendPatchRequest = function (data) {
 		headers: {
 			'Content-type': 'application/json',
 		},
+		signal: AbortSignal.timeout(2000),
 	})
 
 	self
@@ -47,14 +50,6 @@ exports.sendPatchRequest = function (data) {
 exports.sendFetch = function (request, isPoll) {
 	let self = this
 	return new Promise(async function (resolve, reject) {
-		if (isPoll && self.requestWaiting) {
-			return reject('Request still in the air')
-		} else if (isPoll) {
-			self.requestWaiting = true
-		}
-
-		const timestamp = Date.now()
-
 		// Check if the IP was set.
 		if (self.config.ip === undefined || self.config.ip.length === 0) {
 			if (self.loggedError === false) {
@@ -65,8 +60,16 @@ exports.sendFetch = function (request, isPoll) {
 			}
 
 			self.timestampOfRequest = timestamp
-			reject('IP not set')
+			return reject('IP not set')
 		}
+
+		if (isPoll && self.requestWaiting) {
+			return reject('Request still in the air')
+		} else if (isPoll) {
+			self.requestWaiting = true
+		}
+
+		const timestamp = Date.now()
 
 		fetch(request) // api for the get request
 			.then((response) => {
@@ -80,19 +83,18 @@ exports.sendFetch = function (request, isPoll) {
 					return response.json()
 				} else {
 					self.updateStatus(InstanceStatus.ConnectionFailure, `Response status: ${response.status}`)
-					throw new Error(`Response status: ${response.status}`);
+					throw new Error(`Response status: ${response.status}`)
 				}
 			})
 			.then((data) => {
 				resolve(data)
 			})
 			.catch((error) => {
-				self.log('error', JSON.stringify(error))
-				if (error === 'TypeError: fetch failed') {
+				if (error instanceof TypeError) {
 					self.updateStatus(InstanceStatus.ConnectionFailure, `Unable to connect`)
 				}
 				if (self.loggedError === false) {
-					self.log('error', 'HTTP Request ' +request.url + ' failed (' + error + ')')
+					self.log('error', 'HTTP Request ' + request.url + ' failed (' + error + ')')
 					self.loggedError = true
 				}
 				reject(error)

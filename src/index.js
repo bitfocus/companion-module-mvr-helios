@@ -35,11 +35,11 @@ class instance extends InstanceBase {
 
 		this.configurations = []
 		this.media = []
-		this.groups = []
+		this.groups = {}
+		this.groupSignature = ''
+		this.definitionSignature = ''
 
-		this.updateActions()
-		this.initFeedback()
-		this.updatePresets()
+		this.refreshDefinitions()
 		this.initVariables()
 
 		this.startPolling()
@@ -54,17 +54,17 @@ class instance extends InstanceBase {
 		return [
 			{
 				type: 'static-text',
-				id: 'info',
+				id: 'info_1',
 				width: 12,
 				label: 'Information',
 				value: 'This works with all Helios configurations.',
 			},
 			{
 				type: 'static-text',
-				id: 'info',
+				id: 'info_2',
 				width: 12,
 				label: 'Firmware',
-				value: 'Latest supported firmware version: HELIOS v24.07',
+				value: 'Latest supported firmware version: HELIOS v26.07',
 			},
 			{
 				type: 'textinput',
@@ -84,7 +84,19 @@ class instance extends InstanceBase {
 
 	async configUpdated(config) {
 		this.config = config
+		this.loggedError = false
+		this.firstAttempt = true
 		this.startPolling()
+	}
+
+	refreshDefinitions() {
+		const signature = JSON.stringify([this.getInputs(), this.getGroups(), this.media, this.configurations])
+		if (signature === this.definitionSignature) return
+		this.definitionSignature = signature
+
+		this.updateActions()
+		this.initFeedback() // input dropdowns now refresh too
+		this.updatePresets()
 	}
 
 	startPolling = function () {
@@ -157,8 +169,7 @@ class instance extends InstanceBase {
 				})
 		}
 
-		this.updateActions()
-		this.updatePresets()
+		this.refreshDefinitions()
 	}
 
 	setPreset(data) {
@@ -208,13 +219,10 @@ class instance extends InstanceBase {
 	}
 
 	getGroups() {
-		let groups = []
-		let index = 0
-		for (let group of this.groups) {
-			groups.push({ id: index, label: group.name })
-			index++
-		}
-		return groups
+		return Object.entries(this.groups).map(([key, group]) => ({
+			id: key,
+			label: group.name ?? key,
+		}))
 	}
 }
 

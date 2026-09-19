@@ -32,7 +32,7 @@ exports.initFeedback = function () {
 		type: 'boolean',
 		name: 'Check Freeze Status',
 		description: 'Checks the freeze status of the processor.',
-		style: {
+		defaultStyle: {
 			color: combineRgb(0, 0, 0),
 			bgcolor: combineRgb(255, 0, 0),
 		},
@@ -57,7 +57,7 @@ exports.initFeedback = function () {
 		type: 'boolean',
 		name: 'Check Active Input',
 		description: 'Returns true if the selected input is active.',
-		style: {
+		defaultStyle: {
 			color: combineRgb(0, 255, 0),
 			bgcolor: combineRgb(255, 255, 255),
 		},
@@ -79,7 +79,7 @@ exports.initFeedback = function () {
 		type: 'boolean',
 		name: 'Check Invalid Input',
 		description: 'Returns true if the selected input is invalid.',
-		style: {
+		defaultStyle: {
 			color: combineRgb(255, 255, 255),
 			bgcolor: combineRgb(255, 70, 0),
 		},
@@ -93,12 +93,13 @@ exports.initFeedback = function () {
 			},
 		],
 		callback: function (feedback) {
-			if (self.ingest !== undefined) {
+			if (self.ingest !== undefined && self.ingest.inputs !== undefined) {
 				if (self.ingest.inputs[feedback.options.input] === undefined) {
 					return true
 				}
 				return !self.ingest.inputs[feedback.options.input].valid
 			}
+			return false
 		},
 	}
 
@@ -106,7 +107,7 @@ exports.initFeedback = function () {
 		type: 'boolean',
 		name: 'Check Test Pattern Status',
 		description: 'Checks if the test pattern is active.',
-		style: {
+		defaultStyle: {
 			color: combineRgb(0, 0, 0),
 			bgcolor: combineRgb(255, 0, 0),
 		},
