@@ -942,6 +942,114 @@ exports.updateActions = function () {
 		},
 	}
 
+	actions['inc_group_brightness'] = {
+		name: 'Increase Group Brightness',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Select Group',
+				id: 'group',
+				default: 0,
+				choices: this.getGroups(),
+			},
+			{
+				type: 'number',
+				label: 'Brightness Amount',
+				id: 'brightness',
+				min: 0,
+				max: 1,
+				default: 0.01,
+				step: 0.01,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let opt = event.options
+			const selGroup = self.groups[opt.group]
+			
+			let curBrightness = selGroup.gains.i
+
+			if (curBrightness === undefined) {
+				curBrightness = 1
+			}
+
+			let newBrightness = (parseFloat(curBrightness) + event.options.brightness).toFixed(2) - 0
+
+			if (newBrightness > 2) {
+				newBrightness = 2
+			}
+
+			selGroup.gains.i = newBrightness
+
+			let object = {}
+			object['dev'] = {
+				groups: {},
+			}
+
+			object['dev'].groups[opt.group] = {
+				gains: {
+					i: newBrightness,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
+	actions['dec_group_brightness'] = {
+		name: 'Decrease Group Brightness',
+		options: [
+			{
+				type: 'dropdown',
+				label: 'Select Group',
+				id: 'group',
+				default: 0,
+				choices: this.getGroups(),
+			},
+			{
+				type: 'number',
+				label: 'Brightness Amount',
+				id: 'brightness',
+				min: 0,
+				max: 2,
+				default: 0.01,
+				step: 0.01,
+				required: true,
+				range: true,
+			},
+		],
+		callback: (event) => {
+			let opt = event.options
+			const selGroup = self.groups[opt.group]
+			
+			let curBrightness = selGroup.gains.i
+
+			if (curBrightness === undefined) {
+				curBrightness = 1
+			}
+
+			let newBrightness = (parseFloat(curBrightness) - event.options.brightness).toFixed(2) - 0
+
+			if (newBrightness < 0) {
+				newBrightness = 0
+			}
+
+			selGroup.gains.i = newBrightness
+
+			let object = {}
+			object['dev'] = {
+				groups: {},
+			}
+
+			object['dev'].groups[opt.group] = {
+				gains: {
+					i: newBrightness,
+				},
+			}
+			self.sendPatchRequest(object)
+		},
+	}
+
 	actions['set_lift'] = {
 		name: 'Set Lift',
 		options: [
