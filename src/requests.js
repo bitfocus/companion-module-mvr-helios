@@ -50,6 +50,8 @@ exports.sendPatchRequest = function (data) {
 exports.sendFetch = function (request, isPoll) {
 	let self = this
 	return new Promise(async function (resolve, reject) {
+		const timestamp = Date.now()
+
 		// Check if the IP was set.
 		if (self.config.ip === undefined || self.config.ip.length === 0) {
 			if (self.loggedError === false) {
@@ -68,8 +70,6 @@ exports.sendFetch = function (request, isPoll) {
 		} else if (isPoll) {
 			self.requestWaiting = true
 		}
-
-		const timestamp = Date.now()
 
 		fetch(request) // api for the get request
 			.then((response) => {
